@@ -72,4 +72,4 @@ search :: [Permute] -> Set.Set Permute -> [Permute]
 search [] foundPerms = Set.elems foundPerms
 -- Note that the Set.foldl could be replaced with a Set.union for more clarity, but I was curious if this would be faster.  
 search (x:xs) foundPerms = search (xs ++ (Set.elems newPerms)) (Set.foldl (flip Set.insert) foundPerms newPerms)
-    where newPerms = (Set.fromList $ map (\f -> x `mappend` f) moves) Set.\\ foundPerms
+    where newPerms = Set.filter (flip Set.notMember $ foundPerms) $ Set.fromList $ map (\f -> x `mappend` f) moves
