@@ -46,8 +46,10 @@ left = listPermute stickerCount $ map (\i -> i-1) [7,2,3,6, 5,24,21,8, 9,10,11,1
 bottom :: Permute
 bottom = listPermute stickerCount $ map (\i -> i-1) [1,2,3,4, 5,6,11,12, 9,10,15,16, 13,14,19,20, 17,18,7,8, 24,21,22,23]
 
+-- we only include three of the six moves here because, for instance, a left rotation is the same as 3 right rotations and a whole-cube turn.  Thus, including both would be redundant.
+-- This effectively "locks" the 1-6-17 (in 1-based numbering) corner piece in place, letting the other corners move freely
 moves :: [Permute]
-moves = [top, back, right, front, left, bottom]
+moves = [right, back, bottom]
 
 -- Now that we have defined the monoidal permutations, we set up a Writer monad to keep track of the rotations that get applied
 -- This function allows us to quickly turn the above 6 permutations into monadic functions
