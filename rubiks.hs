@@ -1,48 +1,44 @@
-{-# LANGUAGE KindSignatures, ScopedTypeVariables, PolyKinds, TypeInType, GADTs, DataKinds #-}
+{-# LANGUAGE KindSignatures, ScopedTypeVariables, PolyKinds, TypeInType, GADTs, DataKinds, ExistentialQuantification #-}
 import Data.List
 import Data.Permute
 import Data.Kind
 import Data.Sized.Fin
+import Data.Singletons.TypeLits
+import qualified GHC.TypeLits as TL
 
 -- Define our basic type with some useful synonyms
 type CubeSize = Int
 type Permutation = [Int]
-data Cube :: Nat -> * where 
-    Cube :: Permutation -> Cube n
-        deriving (Show, Eq)
+type StickerGroups = [Permutation]
+data Cube = Cube CubeSize StickerGroups
+    deriving Show
 
---cubeLength :: (Cube n) -> Int
---cubeLength (CubeCon _) = n
+-- Functions to build a solved cube of arbitrary size
+solvedCubeOfSize :: CubeSize -> Cube
+solvedCubeOfSize size = Cube size (stickerGroupsForSize size) 
 
---lengthOfCube :: Cube n -> Int
---lengthOfCube (CubeCon n p) = n
+stickerGroupsForSize :: CubeSize -> StickerGroups
+stickerGroupsForSize size = concat $ map (stickerGroupsForSizeAtRow size) [0..x]
+    where x = (stickerGroupCountForSize size) - 1
 
---instance Monoid (Cube n) where
---    mempty = CubeCon n [0..n]
---    mappend p1 p2 = p1
+stickerGroupCountForSize :: CubeSize -> Int
+stickerGroupCountForSize size
+    | odd size = (size `div` 2) + 1
+    | even size = size `div` 2
 
--- Define a smart constructor for the Cube type that validates the perm length and values
-expectedPermLength :: CubeSize -> Int
-expectedPermLength s = 6*s^2
+stickerGroupsForSizeAtRow :: CubeSize -> Int -> StickerGroups
+stickerGroupsForSizeAtRow size x
+    | (odd size && x == 0) = [[0..5]]
+    | odd size = [[0..23]] ++ [[0..47] | _ <- [0..x-2]] ++ [[0..23]]
+    | even size = [[0..47] | _ <- [0..x-1]] ++ [[0..23]] 
 
---isValidPerm :: Permutation -> Bool
---isValidPerm p = (sort p) == [0..((length p)-1)]
---
---isValidCubeDesc :: CubeSize -> Permutation -> Bool
---isValidCubeDesc s p = ((length p) == (expectedPermLength s)) && (isValidPerm p)
+-- Validates that the number of stickers is correct
+expectedStickerCountForSize :: CubeSize -> Int
+expectedStickerCountForSize size = 6*(size^2)
 
---makeCube :: CubeSize -> Permutation -> Cube
---makeCube s p
---    | isValidCubeDesc s p = Cube s p
---    | otherwise = error "Invalid cube description"
+isValidStickerCount :: Cube -> Bool
+isValidStickerCount (Cube size stickers) = (expectedStickerCountForSize size) == (sum $ map length stickers)
 
--- Because we have characterized a cube by its permutation of stickers, we can write
---  a Monoid instance which combines two permutations/cubes into one
---instance Monoid Cube where
---    mempty
-
--- Define functions to create the "generators" for the cube group
--- These are essentially the possible turns of the cube, but we modify them such that
---      they "fix" one corner in space to ensure there is a unique representation for each
---      cube permutation.
-
+-- Function that generates a sequence of turns for an arbitrarily-sized cube
+-- These turns are expressed as permutations of the sticker groups
+createTurnPermutations :: CubeSize -> [[Permutations]]
