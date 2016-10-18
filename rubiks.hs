@@ -110,12 +110,17 @@ permsForCubeSize :: CubeSize -> [PermutationFunc]
 permsForCubeSize size = concat [rightPermsForCubeSize size, upPermsForCubeSize size, backPermsForCubeSize size]
 
 rightPermsForCubeSize :: CubeSize -> [PermutationFunc]
-rightPermsForCubeSize size = ((rightSliceMove size 0) . (faceRotationPerm 4)) : [rightSliceMove size s | s <- [1..size-2]]
+rightPermsForCubeSize size = rightFaceTurn : map (rightSliceMove size) sliceIndexRange
+    where rightFaceTurn = ((rightSliceMove size 0) . (faceRotationPerm 4))
+          sliceIndexRange = [1..size-2]
           
-
 type SliceIndex = Int
 rightSliceMove :: CubeSize -> SliceIndex -> PermutationFunc 
-rightSliceMove size slice = (\pos@(f,x,y) -> if (not $ inRSlice size slice pos) then pos else ([1,5,2,0,4,3] !! f, if not $ f `elem` [1,5] then x else (-1)*x, if not $ f `elem` [1,5] then y else (-1)*y)) 
+rightSliceMove size slice = (\pos@(f,x,y) -> if notInSlice pos then pos else (f' pos, x' pos, y' pos)) 
+    where notInSlice = (\pos -> not $ inRSlice size slice pos)
+          f' = (\pos@(f,x,y) -> [1,5,2,0,4,3] !! f)
+          x' = (\pos@(f,x,y) -> if f `notElem` [1,5] then x else (-1)*x)
+          y' = (\pos@(f,x,y) -> if f `notElem` [1,5] then y else (-1)*y)
 
 inRSlice :: CubeSize -> SliceIndex -> (FaceIndex, XPos, YPos) -> Bool
 inRSlice size slice (f,x,y) = (f `elem` [0,1,3] && x == sliceX) || (f == 5 && x == (-1)*sliceX)
@@ -124,10 +129,37 @@ inRSlice size slice (f,x,y) = (f `elem` [0,1,3] && x == sliceX) || (f == 5 && x 
           sliceX = range !! slice
 
 upPermsForCubeSize :: CubeSize -> [PermutationFunc]
-upPermsForCubeSize size = []
+upPermsForCubeSize size = upFaceTurn : map (upSliceMove size) sliceIndexRange
+    where upFaceTurn = ((upSliceMove size 0) . (faceRotationPerm 0))
+          sliceIndexRange = [1..size-2]
+
+upSliceMove :: CubeSize -> SliceIndex -> PermutationFunc
+upSliceMove size slice = (\pos@(f,x,y) -> if notInSlice pos then pos else (f' pos, (-1)*y, x)) 
+    where notInSlice = not . (inUSlice size slice)
+          f' = (\pos@(f,x,y) -> [0,4,1,2,3,5] !! f)
+
+inUSlice :: CubeSize -> SliceIndex -> (FaceIndex, XPos, YPos) -> Bool
+inUSlice size slice = (\pos@(f,x,y) -> (f == 1 && y == z) || (f == 2 && x == z) || (f == 3 && y == (-1)*z) || (f == 4 && x == (-1)*z))
+    where k = size `div` 2
+          range = if odd size then [k,k-1..(-1)*(k-1)] else [k,k-1..1] ++ [-1,-2..(-1)*(k-1)]
+          z = range !! slice -- Will be either an x or y coord depending on the face
+          
 
 backPermsForCubeSize :: CubeSize -> [PermutationFunc]
-backPermsForCubeSize size = []
+backPermsForCubeSize size = backFaceTurn : map (backSliceMove size) sliceIndexRange
+    where backFaceTurn = ((backSliceMove size 0) . (faceRotationPerm 3))
+          sliceIndexRange = [1..size-2]
+
+backSliceMove :: CubeSize -> SliceIndex -> PermutationFunc
+backSliceMove size slice = (\pos@(f,x,y) -> if notInSlice pos then pos else (f' pos, x, y)) 
+    where notInSlice = (\pos -> not $ inBSlice size slice pos) 
+          f' = (\(f,_,_) -> [4,1,0,3,5,2] !! f)
+
+inBSlice :: CubeSize -> SliceIndex -> (FaceIndex, XPos, YPos) -> Bool
+inBSlice size slice (f,x,y) = f `elem` [0,2,4,5] && y == sliceY
+    where k = size `div` 2
+          range = if odd size then [k,k-1..(-1)*(k-1)] else [k,k-1..1] ++ [-1,-2..(-1)*(k-1)]
+          sliceY = range !! slice
 
 -- Functions to build a solved cube of arbitrary size
 --solvedCubeOfSize :: CubeSize -> Cube
