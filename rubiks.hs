@@ -1,4 +1,5 @@
 {-# LANGUAGE KindSignatures, ScopedTypeVariables, PolyKinds, TypeInType, GADTs, DataKinds, ExistentialQuantification #-}
+module Rubiks where
 import Data.List
 import Data.Permute
 import Data.Kind
