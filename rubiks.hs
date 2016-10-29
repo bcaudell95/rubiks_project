@@ -123,6 +123,9 @@ applyPerm (Cube size oldFunc) perm = Cube size (\f -> (\x -> (\y -> uncurry3 old
               | odd size = [-k..k]
               | even size = [-k..(-1)] ++ [1..k]
 
+applyPerms :: Cube -> [PermutationFunc] -> Cube
+applyPerms = foldl applyPerm
+
 -- Functions to generate the permutations (i.e. turns) for a cube
 idPerm :: PermutationFunc
 idPerm = id
