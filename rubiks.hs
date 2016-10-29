@@ -18,8 +18,32 @@ type Color = Int
 type StickerId = Int
 -- A CubeState is parameterized on FaceId, XPos, YPos 
 type CubeState = [[[StickerId]]]
-data Cube = Cube CubeSize CubeState
-    deriving (Show, Eq)
+type FXYtoStickerId = FaceId -> XPos -> YPos -> StickerId
+data Cube = Cube CubeSize FXYtoStickerId
+
+-- Range of x and y over a cube of a size
+xyRangeForSize :: CubeSize -> [Int]
+xyRangeForSize size = range 
+        where k = size `div` 2
+              range
+                | odd size = [(-1)*k..k]
+                | even size = [(-1)*k..(-1)] ++ [1..k]
+
+-- Compute the ordered stickers of a cube
+stickersOf :: Cube -> [StickerId]
+stickersOf (Cube size stickerFunc) =  map (\(f,x,y) -> stickerFunc f x y) [(f,x,y) | f <- [0..5], x <- range, y <- range]
+    where range = xyRangeForSize size
+
+-- Instances for the Cube type
+instance Show Cube where
+    show cube@(Cube size _) = "Cube of size " ++ (show size) ++ " with ordered elements " ++ (concat . (intersperse ",") . (map show) $ elements)
+        where elements = stickersOf cube 
+
+instance Eq Cube where
+    (==) c1@(Cube size1 func1) c2@(Cube size2 func2) 
+        | (size1 == size2) = and [(func1 f x y) == (func2 f x y) | f <- [0..5], x <- range, y <- range]
+        | otherwise = False
+        where range = xyRangeForSize size1
 
 -- Define functions to move between the spaces of (FaceId, X, Y) and StickerId
 faceXYtoId :: CubeSize -> FaceId -> XPos -> YPos -> StickerId
@@ -65,13 +89,9 @@ idtoFaceXYEven size id = (f, x', y')
 idToColor :: CubeSize -> StickerId -> Color
 idToColor size id = id `div` (size*size)
 
--- Functions to build and manipulate a cube
+-- Construct a solved cube of an appropriate size
 solvedCubeOfSize :: CubeSize -> Cube
-solvedCubeOfSize size = Cube size [[[faceXYtoId size f x y | y <- range] | x <- range] | f <- [0..5]] 
-    where k = size `div` 2
-          range
-              | odd size = [-k..k]
-              | even size = [-k..(-1)] ++ [1..k]
+solvedCubeOfSize size = Cube size $ faceXYtoId size
 
 -- Functions of this type take a new (face, x, y) to the old (face, x, y) that sticker was before the permutation
 -- Note: PermutationFunc's can be composed using (,).  For best results, have permutations operate on disjoint stickers to ensure commutativity
@@ -92,8 +112,11 @@ fxyToIndices size (f,x,y) = (f, x'+k', y'+k')
 stickerIdAtLocation :: CubeState -> (FaceIndex, XIndex, YIndex) -> StickerId
 stickerIdAtLocation state (f, x, y) = ((state !! f) !! x) !! y
 
+uncurry3 :: (a -> b -> c -> d) -> (a,b,c) -> d
+uncurry3 f (x,y,z) = f x y z
+
 applyPerm :: Cube -> PermutationFunc -> Cube
-applyPerm (Cube size oldState) perm = Cube size [[[stickerIdAtLocation oldState $ fxyToIndices size $ perm (f,x,y) | y <- range] | x <- range] | f <- [0..5]] 
+applyPerm (Cube size oldFunc) perm = Cube size (\f -> (\x -> (\y -> uncurry3 oldFunc $ perm (f,x,y))))
     where k = size `div` 2
           range
               | odd size = [-k..k]
@@ -161,32 +184,3 @@ inBSlice size slice (f,x,y) = f `elem` [0,2,4,5] && y == sliceY
           range = if odd size then [k,k-1..(-1)*(k-1)] else [k,k-1..1] ++ [-1,-2..(-1)*(k-1)]
           sliceY = range !! slice
 
--- Functions to build a solved cube of arbitrary size
---solvedCubeOfSize :: CubeSize -> Cube
---solvedCubeOfSize size = Cube size (stickerGroupsForSize size) 
---
---stickerGroupsForSize :: CubeSize -> StickerGroups
---stickerGroupsForSize size = concat $ map (stickerGroupsForSizeAtRow size) [0..x]
---    where x = (stickerGroupCountForSize size) - 1
---
---stickerGroupCountForSize :: CubeSize -> Int
---stickerGroupCountForSize size
---    | odd size = (size `div` 2) + 1
---    | even size = size `div` 2
---
---stickerGroupsForSizeAtRow :: CubeSize -> Int -> StickerGroups
---stickerGroupsForSizeAtRow size x
---    | (odd size && x == 0) = [[0..5]]
---    | odd size = [[0..23]] ++ [[0..47] | _ <- [0..x-2]] ++ [[0..23]]
---    | even size = [[0..47] | _ <- [0..x-1]] ++ [[0..23]] 
---
----- Validates that the number of stickers is correct
---expectedStickerCountForSize :: CubeSize -> Int
---expectedStickerCountForSize size = 6*(size^2)
---
---isValidStickerCount :: Cube -> Bool
---isValidStickerCount (Cube size stickers) = (expectedStickerCountForSize size) == (sum $ map length stickers)
---
----- Function that generates a sequence of turns for an arbitrarily-sized cube
----- These turns are expressed as permutations of the sticker groups
---createTurnPermutations :: CubeSize -> [[Permutations]]
