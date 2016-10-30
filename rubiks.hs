@@ -188,3 +188,15 @@ inBSlice size slice (f,x,y) = f `elem` [0,2,4,5] && y == sliceY
           range = if odd size then [k,k-1..(-1)*(k-1)] else [k,k-1..1] ++ [-1,-2..(-1)*(k-1)]
           sliceY = range !! slice
 
+-- Reverses a move by applying it three times
+reverseMove :: PermutationFunc -> PermutationFunc
+reverseMove move = move . move . move
+
+-- Convenience functions to make writing these permuation moves easier
+rightMove :: CubeSize -> Int -> PermutationFunc
+rightMove size i = (rightPermsForCubeSize size) !! i
+upMove :: CubeSize -> Int -> PermutationFunc
+upMove size i = (upPermsForCubeSize size) !! i
+backMove :: CubeSize -> Int -> PermutationFunc
+backMove size i = (backPermsForCubeSize size) !! i
+
