@@ -17,8 +17,6 @@ type YPos = Int
 type Color = Int
 -- StickerId carries knowledge about what color a sticker is, and can be used to track where a sticker moves
 type StickerId = Int
--- A CubeState is parameterized on FaceId, XPos, YPos 
-type CubeState = [[[StickerId]]]
 type FXYtoStickerId = FaceId -> XPos -> YPos -> StickerId
 data Cube = Cube CubeSize FXYtoStickerId
 
@@ -110,31 +108,21 @@ fxyToIndices size (f,x,y) = (f, x'+k', y'+k')
           y' = if y > 0 || odd size then y else y+1 
 
 -- Functions to apply a permutation to a cube
-stickerIdAtLocation :: CubeState -> (FaceIndex, XIndex, YIndex) -> StickerId
-stickerIdAtLocation state (f, x, y) = ((state !! f) !! x) !! y
-
 uncurry3 :: (a -> b -> c -> d) -> (a,b,c) -> d
 uncurry3 f (x,y,z) = f x y z
 
 applyPerm :: Cube -> PermutationFunc -> Cube
 applyPerm (Cube size oldFunc) perm = Cube size (\f -> (\x -> (\y -> uncurry3 oldFunc $ perm (f,x,y))))
-    where k = size `div` 2
-          range
-              | odd size = [-k..k]
-              | even size = [-k..(-1)] ++ [1..k]
 
 applyPerms :: Cube -> [PermutationFunc] -> Cube
 applyPerms = foldl applyPerm
 
 -- Functions to generate the permutations (i.e. turns) for a cube
-idPerm :: PermutationFunc
-idPerm = id
-
 faceRotationPerm :: FaceId -> PermutationFunc
 faceRotationPerm face = (\(f,x,y) -> (f,if f /= face then x else (-1)*y,if f /= face then y else x))
 
 permsForCubeSize :: CubeSize -> [PermutationFunc]
-permsForCubeSize size = concat [rightPermsForCubeSize size, upPermsForCubeSize size, backPermsForCubeSize size]
+permsForCubeSize size = concat $ [rightPermsForCubeSize, upPermsForCubeSize, backPermsForCubeSize] <*> pure size
 
 rightPermsForCubeSize :: CubeSize -> [PermutationFunc]
 rightPermsForCubeSize size = rightFaceTurn : map (rightSliceMove size) sliceIndexRange
@@ -199,4 +187,22 @@ upMove :: CubeSize -> Int -> PermutationFunc
 upMove size i = (upPermsForCubeSize size) !! i
 backMove :: CubeSize -> Int -> PermutationFunc
 backMove size i = (backPermsForCubeSize size) !! i
+
+-- Utility function to take every other item from a list, starting with the first
+everyOther :: [a] -> [a]
+everyOther [] = []
+everyOther (x:[]) = [x]
+everyOther (x:y:xs) = [x] ++ (everyOther xs)
+
+-- And a variant that does the same thing starting with the second
+everyOther' :: [a] -> [a]
+everyOther' = everyOther . tail
+
+-- Checkerboard pattern moves just for fun and testing
+checkerboardPerms :: CubeSize -> [PermutationFunc]
+checkerboardPerms size = concat $ zipWith (\a b -> [a,b]) moves moves 
+    where rMoves = rightPermsForCubeSize size
+          uMoves = upPermsForCubeSize size
+          bMoves = backPermsForCubeSize size
+          moves = concat $ map everyOther' [rMoves, uMoves, bMoves]
 

@@ -11,7 +11,7 @@ type PixelY = Int
 
 -- Width and Height in pixels per sticker square
 stickerSquareDim :: Int
-stickerSquareDim = 25
+stickerSquareDim = 10
 
 type Filename = String
 
