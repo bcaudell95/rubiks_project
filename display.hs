@@ -20,11 +20,20 @@ drawCube fn = (writePng ("images/" ++ fn)) . buildImageForCube
 
 -- Define a way to go from a Cube object to a CubeImage representation
 buildImageForCube :: Cube -> Image PixelRGBA8
-buildImageForCube cube@(Cube size _) = generateImage imageFunc width height
+buildImageForCube cube@(Cube size _) = generateImage borderFunc width height
     where width = imageWidthForSize size
           height = imageHeightForSize size
           imageFunc = pixelCoordsToColor cube
-          
+          borderFunc = drawStickerBordersOverImage imageFunc
+         
+drawStickerBordersOverImage :: (PixelX -> PixelY -> PixelRGBA8) -> PixelX -> PixelY -> PixelRGBA8
+drawStickerBordersOverImage imageFunc x y
+    | (onXBorder || onYBorder) = (\(PixelRGBA8 r g b a) -> PixelRGBA8 0 0 0 a) $ imagePixel
+    | otherwise = imagePixel
+        where onXBorder = (x `mod` stickerSquareDim `elem` [0,stickerSquareDim-1])
+              onYBorder = (y `mod` stickerSquareDim `elem` [0,stickerSquareDim-1])
+              imagePixel = imageFunc x y
+ 
 imageWidthForSize :: CubeSize -> ImageWidth
 imageWidthForSize size = stickerSquareDim*size*4 -- In our image, there will be four sides layed out horizontally
 
@@ -57,7 +66,7 @@ yForPoint size py = range !! ((size-1) - ((py `mod` faceHeight) `div` stickerSqu
 
 -- Table of conversions from Color as an integer to an RGB pixel
 colorIndexToPixel :: Color -> PixelRGBA8 
-colorIndexToPixel c = [black, red, green, orange, blue, yellow] !! c
+colorIndexToPixel c = [white, red, green, orange, blue, yellow] !! c
 
 red = PixelRGBA8 255 0 0 255
 black = PixelRGBA8 0 0 0 255
@@ -65,6 +74,7 @@ blue = PixelRGBA8  0 0 255 255
 yellow = PixelRGBA8 255 255 0 255
 green = PixelRGBA8 0 255 0 255
 orange = PixelRGBA8 255 165 0 255
+white = PixelRGBA8 255 255 255 255
 transparent = PixelRGBA8 0 0 0 0
 
 -- Combine all of this to go from PixelX, PixelY to a color
