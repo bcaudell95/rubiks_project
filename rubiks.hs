@@ -17,8 +17,14 @@ type YPos = Int
 type Color = Int
 -- StickerId carries knowledge about what color a sticker is, and can be used to track where a sticker moves
 type StickerId = Int
-type FXYtoStickerId = FaceId -> XPos -> YPos -> StickerId
-data Cube = Cube CubeSize FXYtoStickerId
+
+-- Generalized mapping from the FXY space to some data type on the cube
+type CubeFunc a = FaceId -> XPos -> YPos -> a
+
+data Cube a = (Show a, Eq a) => Cube CubeSize (CubeFunc a)
+
+type IndexedCube = Cube StickerId
+
 
 -- Range of x and y over a cube of a size
 xyRangeForSize :: CubeSize -> [Int]
@@ -29,16 +35,16 @@ xyRangeForSize size = range
                 | even size = [(-1)*k..(-1)] ++ [1..k]
 
 -- Compute the ordered stickers of a cube
-stickersOf :: Cube -> [StickerId]
-stickersOf (Cube size stickerFunc) =  map (\(f,x,y) -> stickerFunc f x y) [(f,x,y) | f <- [0..5], x <- range, y <- range]
+orderedElements :: Cube a -> [a]
+orderedElements (Cube size stickerFunc) =  map (\(f,x,y) -> stickerFunc f x y) [(f,x,y) | f <- [0..5], x <- range, y <- range]
     where range = xyRangeForSize size
 
 -- Instances for the Cube type
-instance Show Cube where
+instance Show (Cube a) where
     show cube@(Cube size _) = "Cube of size " ++ (show size) ++ " with ordered elements " ++ (concat . (intersperse ",") . (map show) $ elements)
-        where elements = stickersOf cube 
+        where elements = orderedElements cube 
 
-instance Eq Cube where
+instance Eq (Cube a) where
     (==) c1@(Cube size1 func1) c2@(Cube size2 func2) 
         | (size1 == size2) = and [(func1 f x y) == (func2 f x y) | f <- [0..5], x <- range, y <- range]
         | otherwise = False
@@ -89,7 +95,7 @@ idToColor :: CubeSize -> StickerId -> Color
 idToColor size id = id `div` (size*size)
 
 -- Construct a solved cube of an appropriate size
-solvedCubeOfSize :: CubeSize -> Cube
+solvedCubeOfSize :: CubeSize -> IndexedCube
 solvedCubeOfSize size = Cube size $ faceXYtoId size
 
 -- Functions of this type take a new (face, x, y) to the old (face, x, y) that sticker was before the permutation
@@ -111,10 +117,10 @@ fxyToIndices size (f,x,y) = (f, x'+k', y'+k')
 uncurry3 :: (a -> b -> c -> d) -> (a,b,c) -> d
 uncurry3 f (x,y,z) = f x y z
 
-applyPerm :: Cube -> PermutationFunc -> Cube
+applyPerm :: IndexedCube -> PermutationFunc -> IndexedCube
 applyPerm (Cube size oldFunc) perm = Cube size (\f -> (\x -> (\y -> uncurry3 oldFunc $ perm (f,x,y))))
 
-applyPerms :: Cube -> [PermutationFunc] -> Cube
+applyPerms :: IndexedCube -> [PermutationFunc] -> IndexedCube
 applyPerms = foldl applyPerm
 
 -- Functions to generate the permutations (i.e. turns) for a cube

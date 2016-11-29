@@ -17,12 +17,12 @@ stickerSquareDim = 10
 
 type Filename = String
 
-drawCube :: Filename -> Cube -> IO ()
+drawCube :: Filename -> IndexedCube -> IO ()
 drawCube fn = (writePng ("images/" ++ fn)) . buildImageForCube 
 
 -- Define a way to go from a Cube object to a CubeImage representation
-buildImageForCube :: Cube -> Image PixelRGBA8
-buildImageForCube cube@(Cube size _) = generateImage borderFunc width height
+buildImageForCube :: IndexedCube -> Image PixelRGBA8
+buildImageForCube cube@(IndexedCube size _) = generateImage borderFunc width height
     where width = imageWidthForSize size
           height = imageHeightForSize size
           imageFunc = pixelCoordsToColor cube
@@ -80,8 +80,8 @@ white = PixelRGBA8 255 255 255 255
 transparent = PixelRGBA8 0 0 0 0
 
 -- Combine all of this to go from PixelX, PixelY to a color
-pixelCoordsToColor :: Cube -> PixelX -> PixelY -> PixelRGBA8
-pixelCoordsToColor (Cube size stickerFunc) px py
+pixelCoordsToColor :: IndexedCube -> PixelX -> PixelY -> PixelRGBA8
+pixelCoordsToColor (IndexedCube size stickerFunc) px py
     | isJust face = (\(Just f) -> colorIndexToPixel . (idToColor size) $ stickerFunc f cx cy) $ face 
     | otherwise = transparent
         where face = faceForPoint size px py

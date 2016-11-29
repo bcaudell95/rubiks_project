@@ -34,8 +34,8 @@ compareColorIndices s1 s2 = compare (stickerToRank s1) (stickerToRank s2)
     where stickerToRank = colorRank . (idToColor 3)
 
 -- Note that with our ordering, there is no chance of equality in this comparison as, for instance, there is no red-orange edge
-countPositiveEdges :: Cube -> Int
-countPositiveEdges (Cube 3 func) = sum $ map (\((f1,x1,y1),(f2,x2,y2)) -> if (compareColorIndices (func f1 x1 y1) (func f2 x2 y2)) == GT then 1 else 0) edgesWithOrientation 
+countPositiveEdges :: IndexedCube -> Int
+countPositiveEdges (IndexedCube 3 func) = sum $ map (\((f1,x1,y1),(f2,x2,y2)) -> if (compareColorIndices (func f1 x1 y1) (func f2 x2 y2)) == GT then 1 else 0) edgesWithOrientation 
 
 
 -- Sequence of moves to flip two edges in place on a 3-cube
