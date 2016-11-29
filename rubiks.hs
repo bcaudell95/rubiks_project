@@ -1,4 +1,3 @@
-{-# LANGUAGE KindSignatures, ScopedTypeVariables, PolyKinds, TypeInType, GADTs, DataKinds, ExistentialQuantification, FlexibleInstances #-}
 module Rubiks where
 import Data.List
 
