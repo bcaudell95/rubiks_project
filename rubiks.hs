@@ -1,4 +1,4 @@
-{-# LANGUAGE KindSignatures, ScopedTypeVariables, PolyKinds, TypeInType, GADTs, DataKinds, ExistentialQuantification #-}
+{-# LANGUAGE KindSignatures, ScopedTypeVariables, PolyKinds, TypeInType, GADTs, DataKinds, ExistentialQuantification, FlexibleInstances #-}
 module Rubiks where
 import Data.List
 import Data.Permute
@@ -21,10 +21,25 @@ type StickerId = Int
 -- Generalized mapping from the FXY space to some data type on the cube
 type CubeFunc a = FaceId -> XPos -> YPos -> a
 
-data Cube a = (Show a, Eq a) => Cube CubeSize (CubeFunc a)
+-- Generalized cube-like structure
+data Cube a = Cube CubeSize (CubeFunc a)
 
+-- The basic cube type, which assigns each sticker to an index from 0..(6n^2 - 1)
 type IndexedCube = Cube StickerId
 
+-- Instances for the Cube type
+instance (Show a) => Show (Cube a) where
+    show cube@(Cube size _) = "Cube of size " ++ (show size) ++ " with ordered elements " ++ (concat . (intersperse ",") . (map show) $ elements)
+        where elements = orderedElements cube 
+
+instance (Eq a) => Eq (Cube a) where
+    (==) c1@(Cube size1 func1) c2@(Cube size2 func2) 
+        | (size1 == size2) = and [(func1 f x y) == (func2 f x y) | f <- [0..5], x <- range, y <- range]
+        | otherwise = False
+        where range = xyRangeForSize size1
+
+instance Functor Cube where
+    fmap f (Cube size cubeFunc) = Cube size ((fmap . fmap . fmap) f cubeFunc)
 
 -- Range of x and y over a cube of a size
 xyRangeForSize :: CubeSize -> [Int]
@@ -38,17 +53,6 @@ xyRangeForSize size = range
 orderedElements :: Cube a -> [a]
 orderedElements (Cube size stickerFunc) =  map (\(f,x,y) -> stickerFunc f x y) [(f,x,y) | f <- [0..5], x <- range, y <- range]
     where range = xyRangeForSize size
-
--- Instances for the Cube type
-instance Show (Cube a) where
-    show cube@(Cube size _) = "Cube of size " ++ (show size) ++ " with ordered elements " ++ (concat . (intersperse ",") . (map show) $ elements)
-        where elements = orderedElements cube 
-
-instance Eq (Cube a) where
-    (==) c1@(Cube size1 func1) c2@(Cube size2 func2) 
-        | (size1 == size2) = and [(func1 f x y) == (func2 f x y) | f <- [0..5], x <- range, y <- range]
-        | otherwise = False
-        where range = xyRangeForSize size1
 
 -- Define functions to move between the spaces of (FaceId, X, Y) and StickerId
 faceXYtoId :: CubeSize -> FaceId -> XPos -> YPos -> StickerId
@@ -117,10 +121,10 @@ fxyToIndices size (f,x,y) = (f, x'+k', y'+k')
 uncurry3 :: (a -> b -> c -> d) -> (a,b,c) -> d
 uncurry3 f (x,y,z) = f x y z
 
-applyPerm :: IndexedCube -> PermutationFunc -> IndexedCube
+applyPerm :: (Cube a) -> PermutationFunc -> (Cube a)
 applyPerm (Cube size oldFunc) perm = Cube size (\f -> (\x -> (\y -> uncurry3 oldFunc $ perm (f,x,y))))
 
-applyPerms :: IndexedCube -> [PermutationFunc] -> IndexedCube
+applyPerms :: (Cube a) -> [PermutationFunc] -> (Cube a)
 applyPerms = foldl applyPerm
 
 -- Functions to generate the permutations (i.e. turns) for a cube

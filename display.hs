@@ -22,7 +22,7 @@ drawCube fn = (writePng ("images/" ++ fn)) . buildImageForCube
 
 -- Define a way to go from a Cube object to a CubeImage representation
 buildImageForCube :: IndexedCube -> Image PixelRGBA8
-buildImageForCube cube@(IndexedCube size _) = generateImage borderFunc width height
+buildImageForCube cube@(Cube size _) = generateImage borderFunc width height
     where width = imageWidthForSize size
           height = imageHeightForSize size
           imageFunc = pixelCoordsToColor cube
@@ -81,7 +81,7 @@ transparent = PixelRGBA8 0 0 0 0
 
 -- Combine all of this to go from PixelX, PixelY to a color
 pixelCoordsToColor :: IndexedCube -> PixelX -> PixelY -> PixelRGBA8
-pixelCoordsToColor (IndexedCube size stickerFunc) px py
+pixelCoordsToColor (Cube size stickerFunc) px py
     | isJust face = (\(Just f) -> colorIndexToPixel . (idToColor size) $ stickerFunc f cx cy) $ face 
     | otherwise = transparent
         where face = faceForPoint size px py
