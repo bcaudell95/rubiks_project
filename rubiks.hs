@@ -1,11 +1,6 @@
 {-# LANGUAGE KindSignatures, ScopedTypeVariables, PolyKinds, TypeInType, GADTs, DataKinds, ExistentialQuantification, FlexibleInstances #-}
 module Rubiks where
 import Data.List
-import Data.Permute
-import Data.Kind
-import Data.Sized.Fin
-import Data.Singletons.TypeLits
-import qualified GHC.TypeLits as TL
 
 -- Define our basic type with some useful synonyms
 type CubeSize = Int
