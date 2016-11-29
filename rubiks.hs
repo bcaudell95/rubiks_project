@@ -206,3 +206,4 @@ checkerboardPerms size = concat $ zipWith (\a b -> [a,b]) moves moves
           bMoves = backPermsForCubeSize size
           moves = concat $ map everyOther' [rMoves, uMoves, bMoves]
 
+

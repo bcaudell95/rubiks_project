@@ -1,5 +1,7 @@
+module Display where
 import Rubiks
 import Codec.Picture
+
 
 type ImageHeight = Int
 type ImageWidth = Int
