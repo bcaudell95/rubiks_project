@@ -1,5 +1,6 @@
 import Rubiks
 import Display
+import Codec.Picture
 
 -- Count the number of "positively" oriented edges on the 3-cube
 -- For positivity, assign a poset relationship on colors as White = Yellow > Red = Orange > Blue = Green
@@ -48,3 +49,78 @@ flipTwoEdges = [slice, up, slice, up, slice, up, slice, up, slice, up', slice, u
 -- General function to get all prefixed of a list, including the whole list
 prefixes :: [a] -> [[a]]
 prefixes items = [take i items| i <- [1..(length items)]]
+
+-- Generating the graph of corner transitions
+data StandardMove = U | U' | R | R' | F | F' | L | L' | B | B' | D | D'
+    deriving Show
+type FaceDirection = Char
+type CornerOrientation = [FaceDirection] -- Actually has length exactly 3, but declaring a tuple makes instantiation more annoying
+type GraphVertexAndEdges = (CornerOrientation, [(StandardMove, CornerOrientation)])
+
+movesFrom :: CornerOrientation -> [(StandardMove, CornerOrientation)]
+movesFrom "URF" = [(U, "UFL"), (U',"UBR"), (R, "BRU"), (R', "FRD"), (F, "RDF"), (F', "LUF")]
+movesFrom "UFL" = [(U, "ULB"), (U',"URF"), (F, "RFU"), (F', "LFD"), (L, "FDL"), (L', "BUL")]
+movesFrom "ULB" = [(U, "UBR"), (U',"UFL"), (L, "FLU"), (L', "BLD"), (B, "LDB"), (B', "RUB")]
+movesFrom "UBR" = [(U, "URF"), (U',"ULB"), (R, "BDR"), (R', "FUR"), (B, "LBU"), (B', "RBD")]
+movesFrom "FRD" = [(R, "URF"), (R',"DRB"), (F, "FDL"), (F', "FUR"), (D, "RBD"), (D', "LFD")]
+movesFrom "LFD" = [(F, "UFL"), (F',"DFR"), (L, "LDB"), (L', "LUF"), (D, "FRD"), (D', "BLD")]
+movesFrom "BLD" = [(L, "ULB"), (L',"DLF"), (B, "BDR"), (B', "BUL"), (D, "LFD"), (D', "RBD")]
+movesFrom "RBD" = [(R, "RDF"), (R',"RUB"), (B, "UBR"), (B', "DBL"), (D, "BLD"), (D', "FRD")]
+
+subgraph :: [GraphVertexAndEdges]
+subgraph = [(start, movesFrom start) | start <- ["URF", "UFL", "ULB", "UBR", "FRD", "LFD", "BLD", "RBD"]]
+
+cycleMove :: GraphVertexAndEdges -> Int -> GraphVertexAndEdges
+cycleMove x 0 = x
+cycleMove (start, moves) 1 = (cycle3 start, map (\(m, r) -> (m, cycle3 r)) moves) 
+    where cycle3 = (\s -> take 3 $ tail $ cycle s)
+cycleMove (start, moves) 2 = (cycle3' start, map (\(m, r) -> (m, cycle3' r)) moves) 
+    where cycle3' = (\s -> take 3 $ tail $ tail $ cycle s)
+
+graph :: [GraphVertexAndEdges]
+graph = concat $ [[m, cycleMove m 1, cycleMove m 2] | m <- subgraph] 
+
+type CornerCube = Cube (Maybe Int)
+
+cornerCube :: CornerCube
+cornerCube = Cube 3 cornerCubeFunc
+
+cornerCubeFunc :: CubeFunc (Maybe Int)
+-- Centers and edges
+cornerCubeFunc _ 0 0    = Nothing
+cornerCubeFunc _ 1 0    = Nothing
+cornerCubeFunc _ (-1) 0   = Nothing
+cornerCubeFunc _ 0 1    = Nothing
+cornerCubeFunc _ 0 (-1)   = Nothing
+-- 0's on the U and D faces
+cornerCubeFunc 0 _ _    = Just 0
+cornerCubeFunc 5 _ _    = Just 0
+-- 1's and 2's arond the U layer
+cornerCubeFunc 1 (-1) 1   = Just 1
+cornerCubeFunc 2 1 1   = Just 1
+cornerCubeFunc 3 1 (-1)   = Just 1
+cornerCubeFunc 4 (-1) (-1)   = Just 1
+cornerCubeFunc 1 1 1   = Just 2
+cornerCubeFunc 2 1 (-1)   = Just 2
+cornerCubeFunc 3 (-1) (-1)   = Just 2
+cornerCubeFunc 4 (-1) 1   = Just 2
+-- 1's and 2's around the D layer
+cornerCubeFunc 1 1 (-1)   = Just 1
+cornerCubeFunc 2 (-1) (-1)   = Just 1
+cornerCubeFunc 3 (-1) 1   = Just 1
+cornerCubeFunc 4 1 1   = Just 1
+cornerCubeFunc 1 (-1) (-1)   = Just 2
+cornerCubeFunc 2 (-1) 1   = Just 2
+cornerCubeFunc 3 1 1   = Just 2
+cornerCubeFunc 4 1 (-1)   = Just 2
+
+-- Functions used in the drawing of this corner cube
+cornerEntryToPixel :: Maybe Int -> PixelRGBA8
+cornerEntryToPixel Nothing = transparent
+cornerEntryToPixel (Just x) = [red, green, blue] !! x
+
+unjust :: (Maybe a) -> a
+unjust (Just x) = x
+
+sumOfOrientations :: CornerCube -> Int
+sumOfOrientations (Cube _ func) = sum . (map unjust) $ func <$> [0,5] <*> [1,-1] <*> [1,-1]

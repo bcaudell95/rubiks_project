@@ -36,12 +36,11 @@ instance Functor Cube where
     fmap f (Cube size cubeFunc) = Cube size ((fmap . fmap . fmap) f cubeFunc)
 
 -- Range of x and y over a cube of a size
+-- If the size is odd, then the range is -k to k, if it is even then it is the same range minus 0
 xyRangeForSize :: CubeSize -> [Int]
-xyRangeForSize size = range 
+xyRangeForSize size = filter filterFunc [(-1)*k..k]
         where k = size `div` 2
-              range
-                | odd size = [(-1)*k..k]
-                | even size = [(-1)*k..(-1)] ++ [1..k]
+              filterFunc = if odd size then const True else (/= 0)
 
 -- Compute the ordered stickers of a cube
 orderedElements :: Cube a -> [a]

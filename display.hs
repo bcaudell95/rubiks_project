@@ -11,30 +11,47 @@ data CubeImage = CubeImage ImageWidth ImageHeight ImageFunc
 type PixelX = Int
 type PixelY = Int
 
+-- Typeclass for pixels that we can use in our rendering -- requies specification of border and background "colors"
+class (Pixel p, PngSavable p) => CubeRenderable p where
+    transparent     :: p
+    border          :: p
+
+-- Define one instance for now
+instance CubeRenderable PixelRGBA8 where
+    transparent = PixelRGBA8 0 0 0 0
+    border = PixelRGBA8 0 0 0 255
+
 -- Width and Height in pixels per sticker square
 stickerSquareDim :: Int
 stickerSquareDim = 10
 
 type Filename = String
 
-drawCube :: Filename -> IndexedCube -> IO ()
-drawCube fn = (writePng ("images/" ++ fn)) . buildImageForCube 
+drawIndexedCube :: Filename -> IndexedCube -> IO ()
+drawIndexedCube fn cube@(Cube size _) = drawCubeWith fn cube (colorIndexToPixel . (idToColor size))
 
--- Define a way to go from a Cube object to a CubeImage representation
-buildImageForCube :: IndexedCube -> Image PixelRGBA8
+drawPixelCube :: (CubeRenderable p) => Filename -> (Cube p) -> IO()
+drawPixelCube fn = (writePng ("images/" ++ fn)) . buildImageForCube
+
+drawCubeWith :: (CubeRenderable p) => Filename -> (Cube a) -> (a -> p) -> IO ()
+drawCubeWith fn cube func = drawPixelCube fn $ fmap func cube
+
+-- Generalization of above function to any CubeRenderable cube
+buildImageForCube :: (CubeRenderable p) => (Cube p) -> (Image p)
 buildImageForCube cube@(Cube size _) = generateImage borderFunc width height
     where width = imageWidthForSize size
           height = imageHeightForSize size
           imageFunc = pixelCoordsToColor cube
-          borderFunc = drawStickerBordersOverImage imageFunc
+          borderFunc = drawStickerBordersOverImage imageFunc 
          
-drawStickerBordersOverImage :: (PixelX -> PixelY -> PixelRGBA8) -> PixelX -> PixelY -> PixelRGBA8
+drawStickerBordersOverImage :: (CubeRenderable p) => (PixelX -> PixelY -> p) -> PixelX -> PixelY -> p
 drawStickerBordersOverImage imageFunc x y
-    | (onXBorder || onYBorder) = (\(PixelRGBA8 r g b a) -> PixelRGBA8 0 0 0 a) $ imagePixel
+    | (onXBorder || onYBorder) = if isTransparent then transparent else border
     | otherwise = imagePixel
         where onXBorder = (x `mod` stickerSquareDim `elem` [0,stickerSquareDim-1])
               onYBorder = (y `mod` stickerSquareDim `elem` [0,stickerSquareDim-1])
               imagePixel = imageFunc x y
+              isTransparent = (imagePixel == transparent)
  
 imageWidthForSize :: CubeSize -> ImageWidth
 imageWidthForSize size = stickerSquareDim*size*4 -- In our image, there will be four sides layed out horizontally
@@ -77,12 +94,11 @@ yellow = PixelRGBA8 255 255 0 255
 green = PixelRGBA8 0 255 0 255
 orange = PixelRGBA8 255 165 0 255
 white = PixelRGBA8 255 255 255 255
-transparent = PixelRGBA8 0 0 0 0
 
 -- Combine all of this to go from PixelX, PixelY to a color
-pixelCoordsToColor :: IndexedCube -> PixelX -> PixelY -> PixelRGBA8
-pixelCoordsToColor (Cube size stickerFunc) px py
-    | isJust face = (\(Just f) -> colorIndexToPixel . (idToColor size) $ stickerFunc f cx cy) $ face 
+pixelCoordsToColor :: (CubeRenderable p) => (Cube p) -> PixelX -> PixelY -> p
+pixelCoordsToColor (Cube size cubeFunc) px py
+    | isJust face = (\(Just f) -> cubeFunc f cx cy) $ face 
     | otherwise = transparent
         where face = faceForPoint size px py
               cx = xForPoint size px
@@ -95,7 +111,7 @@ isJust Nothing = False
 
 -- Functions for testing, draw images for all basic moves of a sized cube
 drawMovesOfSize :: CubeSize -> IO [()]
-drawMovesOfSize size = sequence $ [drawCube (concat ["solved", show size, ".png"]) start] ++ [drawCube fn (applyPerm start perm) | (fn, perm) <- allNamesAndMoves] 
+drawMovesOfSize size = sequence $ [drawIndexedCube (concat ["solved", show size, ".png"]) start] ++ [drawIndexedCube fn (applyPerm start perm) | (fn, perm) <- allNamesAndMoves] 
     where start = solvedCubeOfSize size
           rightNamesAndMoves = [("R" ++ show i ++ "_" ++ show size ++ ".png", (rightPermsForCubeSize size) !! i) | i <- [0..size-2]]
           upNamesAndMoves = [("U" ++ show i ++ "_" ++ show size ++ ".png", (upPermsForCubeSize size) !! i) | i <- [0..size-2]]
