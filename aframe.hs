@@ -59,7 +59,9 @@ dslCubeOfSize size = Cube size $ stickerDSL size
 
 -- Pseudo-Applicative apply that with a given cube to create a cube with all our DSL's as data
 getDSLsForCube :: IndexedCube -> DSL [()]
-getDSLsForCube c@(Cube size _) = sequence $ orderedElements . fromJust $ applyCube (dslCubeOfSize size) $ fmap (flip div (size*size)) c
+getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absoluteDSLCube 
+    where colorCube = fmap (flip div (size*size)) c
+          absoluteDSLCube = applyCube (dslCubeOfSize size) $ colorCube
 
 -- Build a scene frome that
 cubeScene :: AFrame
