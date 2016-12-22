@@ -1,6 +1,7 @@
 import Rubiks
 import Display
 import Codec.Picture
+import Data.Maybe (fromJust)
 
 -- Count the number of "positively" oriented edges on the 3-cube
 -- For positivity, assign a poset relationship on colors as White = Yellow > Red = Orange > Blue = Green
@@ -119,8 +120,5 @@ cornerEntryToPixel :: Maybe Int -> PixelRGBA8
 cornerEntryToPixel Nothing = transparent
 cornerEntryToPixel (Just x) = [red, green, blue] !! x
 
-unjust :: (Maybe a) -> a
-unjust (Just x) = x
-
 sumOfOrientations :: CornerCube -> Int
-sumOfOrientations (Cube _ func) = sum . (map unjust) $ func <$> [0,5] <*> [1,-1] <*> [1,-1]
+sumOfOrientations (Cube _ func) = sum . (map fromJust) $ func <$> [0,5] <*> [1,-1] <*> [1,-1]

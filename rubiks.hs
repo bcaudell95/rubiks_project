@@ -35,6 +35,13 @@ instance (Eq a) => Eq (Cube a) where
 instance Functor Cube where
     fmap f (Cube size cubeFunc) = Cube size ((fmap . fmap . fmap) f cubeFunc)
 
+-- Cube is not quite an applicative because of the size factor.  However, given two cubes of equal sizes, one with a function and one with a value, we can
+--      make them a pseudo-applicative functor with this function
+applyCube :: (Cube (a -> b)) -> (Cube a) -> (Maybe (Cube b))
+applyCube (Cube size1 func1) (Cube size2 func2)
+    | size1 == size2 = Just $ Cube size1 (\f -> (\x -> (\y -> (func1 f x y $ func2 f x y))))
+    | otherwise = Nothing
+
 -- Range of x and y over a cube of a size
 -- If the size is odd, then the range is -k to k, if it is even then it is the same range minus 0
 xyRangeForSize :: CubeSize -> [Int]

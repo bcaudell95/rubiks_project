@@ -1,6 +1,7 @@
 module Display where
 import Rubiks
 import Codec.Picture
+import Data.Maybe (isJust)
 
 
 type ImageHeight = Int
@@ -103,11 +104,6 @@ pixelCoordsToColor (Cube size cubeFunc) px py
         where face = faceForPoint size px py
               cx = xForPoint size px
               cy = yForPoint size py
-
--- Small helper function to see if a Maybe is a Just
-isJust :: Maybe a -> Bool
-isJust (Just _) = True
-isJust Nothing = False
 
 -- Functions for testing, draw images for all basic moves of a sized cube
 drawMovesOfSize :: CubeSize -> IO [()]
