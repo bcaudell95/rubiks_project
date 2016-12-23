@@ -46,7 +46,7 @@ rotationForSticker 4 _ _ = (0.0   ,90.0    ,0.0)
 rotationForSticker 5 _ _ = (90.0  ,0.0     ,0.0)
 
 hexForColor :: (Data.String.IsString s) => Rubiks.Color -> s
-hexForColor 0 = "#000000" -- White/Black
+hexForColor 0 = "#FFFFFF" -- White/Black
 hexForColor 1 = "#FF0000" -- Red
 hexForColor 2 = "#00FF00" -- Green
 hexForColor 3 = "#FF8C00" -- Orange
@@ -57,8 +57,8 @@ hexForColor 5 = "#FFFF00" -- Yellow
 stickerDSL :: CubeSize -> FaceId -> XPos -> YPos -> Rubiks.Color -> DSL () 
 stickerDSL size f x y c = plane $ do
     rotation $ rotationForSticker f x y
-    width 1
-    height 1
+    width 0.95
+    height 0.95
     color $ hexForColor c
     position $ posForSticker size f x y
 
@@ -75,9 +75,18 @@ getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absolut
 
 -- Takes a Cube, gets its construction DSLs, and wraps them in an entity with a position that can be moved
 positionCube :: IndexedCube -> (Number, Number, Number) -> DSL [()]
-positionCube c pos = entity $ do
+positionCube c@(Cube size _) pos = entity $ do
     position pos
+    
+    box $ do
+        position (0,0,0)
+        width 1
+        height 1
+        scale (boxDim, boxDim, boxDim)
+        color "#000000"
+    
     getDSLsForCube c
+    where boxDim = (fromRational $ toRational size) - 0.01
 
 -- Build a scene frome that
 cubeScene :: [(IndexedCube, (Number, Number, Number))] -> AFrame
