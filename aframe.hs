@@ -13,24 +13,49 @@ import System.Environment
 -- Mapping from (face, x, y) cube space to (x,y,z) global locations
 -- Output coordinates are the centers of the sticker planes
 posForSticker :: (Fractional a) => CubeSize -> FaceId -> XPos -> YPos -> (a,a,a)
-posForSticker size | (odd size) = oddPosForSticker size
-              | otherwise = error "Implement even size case for posForSticker" 
-
-mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b) -- Small utility function
+posForSticker size | odd size   = oddPosForSticker size
+                   | otherwise  = evenPosForSticker size
+ 
+-- Utility function to map over a uniformly-typed 3-tuple
+mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b)
 mapOverUniform3Tuple f (a,b,c) = (f a, f b, f c)
 
 
 oddPosForSticker :: (Fractional a) => CubeSize -> FaceId -> XPos -> YPos -> (a,a,a)
 oddPosForSticker size f x y = toFrac $ 
-    case f of 0 -> (toRational x       , d                  , toRational $ (-1)*y ) 
-              1 -> (toRational x       , toRational y       , d                   ) 
-              2 -> (d'                 , toRational x       , toRational $ (-1)*y ) 
-              3 -> (toRational x       , toRational $ (-1)*y, d'                  ) 
-              4 -> (d                  , toRational $ (-1)*x, toRational $ (-1)*y ) 
-              5 -> (toRational $ (-1)*x, d'                 , toRational $ (-1)*y )
+    case f of 0 -> (dx , d  , dy' ) 
+              1 -> (dx , dy , d   ) 
+              2 -> (d' , dx , dy' ) 
+              3 -> (dx , dy', d'  ) 
+              4 -> (d  , dx', dy' ) 
+              5 -> (dx', d' , dy' )
     where toFrac = mapOverUniform3Tuple fromRational
           d = (toRational size) / 2
           d' = (-1) * d
+          dx = toRational x
+          dx' = (-1) * dx
+          dy = toRational y
+          dy' = (-1) * dy
+
+-- Utility function for always ``subtracting'' towards zero
+absSub :: (Num a, Ord a) => a -> a -> a
+absSub a b = if a >= 0 then a - b else a + b
+
+evenPosForSticker :: (Fractional a) => CubeSize -> FaceId -> XPos -> YPos -> (a,a,a)
+evenPosForSticker size f x y = toFrac $ 
+    case f of 0 -> (dx , d  , dy' ) 
+              1 -> (dx , dy , d   ) 
+              2 -> (d' , dx , dy' ) 
+              3 -> (dx , dy', d'  ) 
+              4 -> (d  , dx', dy' ) 
+              5 -> (dx', d' , dy' )
+    where toFrac = mapOverUniform3Tuple fromRational
+          d = (toRational size) / 2
+          d' = (-1) * d
+          dx = if odd size then toRational x else absSub (toRational x) 0.5
+          dx' = (-1) * dx
+          dy = if odd size then toRational x else absSub (toRational $ y) 0.5
+          dy' = (-1) * dy
 
 -- Determine the rotation in 3-space of all the sticker planes for a cube, which is solely determined by their faces
 rotationForSticker :: FaceId -> XPos -> YPos -> (Number, Number, Number)
@@ -81,6 +106,6 @@ cubeScene cube = scene $ do
 --  Main function to create a 
 main :: IO ()
 main = do
-    cube <- randomCube 5
+    cube <- randomCube 6
     args <- getArgs
     webPage args $ cubeScene cube
