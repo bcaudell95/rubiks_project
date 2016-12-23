@@ -36,6 +36,16 @@ mapOverUniform3Tuple f (a,b,c) = (f a, f b, f c)
 absSub :: (Num a, Ord a) => a -> a -> a
 absSub a b = if a >= 0 then a - b else a + b
 
+-- Function to translate the above sticker position to the position for the plastic cubie underneath
+translatePosForCubie :: (Fractional a) => CubeSize -> (a,a,a) -> FaceId -> (a,a,a)
+translatePosForCubie size (x,y,z) f = 
+    case f of 0 -> (x, y - 0.5, z)
+              1 -> (x, y, z - 0.5)
+              2 -> (x + 0.5, y, z)
+              3 -> (x, y, z + 0.5)
+              4 -> (x - 0.5, y, z)
+              5 -> (x, y + 0.5, z)
+
 -- Determine the rotation in 3-space of all the sticker planes for a cube, which is solely determined by their faces
 rotationForSticker :: FaceId -> XPos -> YPos -> (Number, Number, Number)
 rotationForSticker 0 _ _ = (-90.0 ,0.0     ,0.0)
@@ -55,12 +65,21 @@ hexForColor 5 = "#FFFF00" -- Yellow
 
 -- Using the above function to create an appropriate DSL for a sticker on the cube
 stickerDSL :: CubeSize -> FaceId -> XPos -> YPos -> Rubiks.Color -> DSL () 
-stickerDSL size f x y c = plane $ do
-    rotation $ rotationForSticker f x y
-    width 0.95
-    height 0.95
-    color $ hexForColor c
-    position $ posForSticker size f x y
+stickerDSL size f x y c = do
+    plane $ do
+        rotation $ rotationForSticker f x y
+        width 0.95
+        height 0.95
+        color $ hexForColor c
+        position pos
+
+    box $ do
+        position $ translatePosForCubie size pos f
+        width 1
+        height 1
+        scale (0.99, 0.99, 0.99)
+        color "#000000"
+    where pos = posForSticker size f x y
 
 -- Build an abstract Cube with the above function partially-applied as the data component
 dslCubeOfSize :: CubeSize -> Cube (Rubiks.Color -> DSL ())
@@ -77,16 +96,7 @@ getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absolut
 positionCube :: IndexedCube -> (Number, Number, Number) -> DSL [()]
 positionCube c@(Cube size _) pos = entity $ do
     position pos
-    
-    box $ do
-        position (0,0,0)
-        width 1
-        height 1
-        scale (boxDim, boxDim, boxDim)
-        color "#000000"
-    
     getDSLsForCube c
-    where boxDim = (fromRational $ toRational size) - 0.01
 
 -- Build a scene frome that
 cubeScene :: [(IndexedCube, (Number, Number, Number))] -> AFrame
