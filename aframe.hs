@@ -19,22 +19,27 @@ posForSticker size | (odd size) = oddPosForSticker size
 mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b) -- Small utility function
 mapOverUniform3Tuple f (a,b,c) = (f a, f b, f c)
 
+
 oddPosForSticker :: (Fractional a) => CubeSize -> FaceId -> XPos -> YPos -> (a,a,a)
-oddPosForSticker size 0 x y = mapOverUniform3Tuple fromRational (toRational x,(toRational size) / 2,toRational $ (-1)*y) 
-oddPosForSticker size 1 x y = mapOverUniform3Tuple fromRational (toRational x,toRational y,(toRational size) / 2) 
-oddPosForSticker size 2 x y = mapOverUniform3Tuple fromRational ((toRational size) / (-2),toRational x,toRational $ (-1)*y) 
-oddPosForSticker size 3 x y = mapOverUniform3Tuple fromRational (toRational x,toRational $ (-1)*y,(toRational size) / (-2)) 
-oddPosForSticker size 4 x y = mapOverUniform3Tuple fromRational ((toRational size) / 2,toRational $ (-1)*x,toRational $ (-1)*y) 
-oddPosForSticker size 5 x y = mapOverUniform3Tuple fromRational (toRational $ (-1)*x,(toRational size) / (-2),toRational $ (-1)*y)
+oddPosForSticker size f x y = toFrac $ 
+    case f of 0 -> (toRational x       , d                  , toRational $ (-1)*y ) 
+              1 -> (toRational x       , toRational y       , d                   ) 
+              2 -> (d'                 , toRational x       , toRational $ (-1)*y ) 
+              3 -> (toRational x       , toRational $ (-1)*y, d'                  ) 
+              4 -> (d                  , toRational $ (-1)*x, toRational $ (-1)*y ) 
+              5 -> (toRational $ (-1)*x, d'                 , toRational $ (-1)*y )
+    where toFrac = mapOverUniform3Tuple fromRational
+          d = (toRational size) / 2
+          d' = (-1) * d
 
 -- Determine the rotation in 3-space of all the sticker planes for a cube, which is solely determined by their faces
 rotationForSticker :: FaceId -> XPos -> YPos -> (Number, Number, Number)
-rotationForSticker 0 = const (const (-90.0 ,0.0     ,0.0))
-rotationForSticker 1 = const (const (0.0   ,0.0     ,0.0))
-rotationForSticker 2 = const (const (0.0   ,-90.0   ,0.0))
-rotationForSticker 3 = const (const (0.0   ,180.0   ,0.0))
-rotationForSticker 4 = const (const (0.0   ,90.0   ,0.0))
-rotationForSticker 5 = const (const (90.0 ,0.0     ,0.0))
+rotationForSticker 0 _ _ = (-90.0 ,0.0     ,0.0)
+rotationForSticker 1 _ _ = (0.0   ,0.0     ,0.0)
+rotationForSticker 2 _ _ = (0.0   ,-90.0   ,0.0)
+rotationForSticker 3 _ _ = (0.0   ,180.0   ,0.0)
+rotationForSticker 4 _ _ = (0.0   ,90.0    ,0.0)
+rotationForSticker 5 _ _ = (90.0 ,0.0      ,0.0)
 
 hexForColor :: (Data.String.IsString s) => Rubiks.Color -> s
 hexForColor 0 = "#000000" -- White/Black
