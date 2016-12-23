@@ -63,40 +63,46 @@ hexForColor 3 = "#FF8C00" -- Orange
 hexForColor 4 = "#0000FF" -- Blue
 hexForColor 5 = "#FFFF00" -- Yellow
 
+-- type synonymn for an "explosion factor" -- basically how much to expand outward the cubies on our Cubes
+type Explosion = Number
+
 -- Using the above function to create an appropriate DSL for a sticker on the cube
-stickerDSL :: CubeSize -> FaceId -> XPos -> YPos -> Rubiks.Color -> DSL () 
-stickerDSL size f x y c = do
+stickerDSL :: CubeSize -> FaceId -> XPos -> YPos -> Rubiks.Color -> Explosion -> DSL () 
+stickerDSL size f x y c explosion = do
     plane $ do
         rotation $ rotationForSticker f x y
         width 0.95
         height 0.95
         color $ hexForColor c
-        position pos
+        position explodedPos
 
     box $ do
-        position $ translatePosForCubie size pos f
+        position $ translatePosForCubie size explodedPos f
         width 1
         height 1
         scale (0.99, 0.99, 0.99)
         color "#000000"
     where pos = posForSticker size f x y
+          explodedPos = mapOverUniform3Tuple (*explosion) pos
 
 -- Build an abstract Cube with the above function partially-applied as the data component
-dslCubeOfSize :: CubeSize -> Cube (Rubiks.Color -> DSL ())
+dslCubeOfSize :: CubeSize -> Cube (Rubiks.Color -> Explosion -> DSL ())
 dslCubeOfSize size = Cube size $ stickerDSL size
 
 -- Pseudo-Applicative apply that with a given cube to create a cube with all our DSL's as data
-getDSLsForCube :: IndexedCube -> DSL [()]
-getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absoluteDSLCube 
+getDSLsForCube :: IndexedCube -> Explosion -> DSL [()]
+getDSLsForCube c@(Cube size _) explosion = sequence . orderedElements $ explodedDSLCube 
     where colorCube = fmap (idToColor size) c
           relativeDSLCube = dslCubeOfSize size
-          absoluteDSLCube = applyCube relativeDSLCube colorCube
+          compactDSLCube = applyCube relativeDSLCube colorCube
+          explodedDSLCube = fmap (\ f -> f explosion) $ fromJust compactDSLCube 
 
 -- Takes a Cube, gets its construction DSLs, and wraps them in an entity with a position that can be moved
 positionCube :: IndexedCube -> (Number, Number, Number) -> DSL [()]
 positionCube c@(Cube size _) pos = entity $ do
     position pos
-    getDSLsForCube c
+    explosion <- numberSelector "explosion" 1 (1,10)
+    getDSLsForCube c explosion
 
 -- Build a scene frome that
 cubeScene :: [(IndexedCube, (Number, Number, Number))] -> AFrame
@@ -111,6 +117,5 @@ cubeScene cubesAndPositions = scene $ do
 main :: IO ()
 main = do
     cube1 <- randomCube 5
-    cube2 <- randomCube 6
     args <- getArgs
-    webPage args $ cubeScene [(cube1, (0,0,-5)), (cube2, (-10,0,-5))]
+    webPage args $ cubeScene [(cube1, (0,0,-5))]
