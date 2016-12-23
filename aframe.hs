@@ -73,10 +73,16 @@ getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absolut
           relativeDSLCube = dslCubeOfSize size
           absoluteDSLCube = applyCube relativeDSLCube colorCube
 
+-- Takes a Cube, gets its construction DSLs, and wraps them in an entity with a position that can be moved
+positionCube :: IndexedCube -> (Number, Number, Number) -> DSL [()]
+positionCube c pos = entity $ do
+    position pos
+    getDSLsForCube c
+
 -- Build a scene frome that
-cubeScene :: IndexedCube -> AFrame
-cubeScene cube = scene $ do
-    getDSLsForCube cube
+cubeScene :: [(IndexedCube, (Number, Number, Number))] -> AFrame
+cubeScene cubesAndPositions = scene $ do
+    sequence $ map (uncurry positionCube) cubesAndPositions
      
     entity $ do
         position (0,-5,5)
@@ -85,6 +91,7 @@ cubeScene cube = scene $ do
 --  Main function to create a 
 main :: IO ()
 main = do
-    cube <- randomCube 5
+    cube1 <- randomCube 5
+    cube2 <- randomCube 6
     args <- getArgs
-    webPage args $ cubeScene cube
+    webPage args $ cubeScene [(cube1, (0,0,-5)), (cube2, (-10,0,-5))]
