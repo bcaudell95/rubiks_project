@@ -39,7 +39,7 @@ rotationForSticker 1 _ _ = (0.0   ,0.0     ,0.0)
 rotationForSticker 2 _ _ = (0.0   ,-90.0   ,0.0)
 rotationForSticker 3 _ _ = (0.0   ,180.0   ,0.0)
 rotationForSticker 4 _ _ = (0.0   ,90.0    ,0.0)
-rotationForSticker 5 _ _ = (90.0 ,0.0      ,0.0)
+rotationForSticker 5 _ _ = (90.0  ,0.0     ,0.0)
 
 hexForColor :: (Data.String.IsString s) => Rubiks.Color -> s
 hexForColor 0 = "#000000" -- White/Black
@@ -66,7 +66,8 @@ dslCubeOfSize size = Cube size $ stickerDSL size
 getDSLsForCube :: IndexedCube -> DSL [()]
 getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absoluteDSLCube 
     where colorCube = fmap (flip div (size*size)) c
-          absoluteDSLCube = applyCube (dslCubeOfSize size) $ colorCube
+          relativeDSLCube = dslCubeOfSize size
+          absoluteDSLCube = applyCube relativeDSLCube colorCube
 
 -- Build a scene frome that
 cubeScene :: IndexedCube -> AFrame
