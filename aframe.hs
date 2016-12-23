@@ -13,19 +13,19 @@ import System.Environment
 -- Mapping from (face, x, y) cube space to (x,y,z) global locations
 -- Output coordinates are the centers of the sticker planes
 posForSticker :: (Fractional a) => CubeSize -> FaceId -> XPos -> YPos -> (a,a,a)
-posForSticker size | (odd size) = oddPosForSticker
+posForSticker size | (odd size) = oddPosForSticker size
               | otherwise = error "Implement even size case for posForSticker" 
 
 mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b) -- Small utility function
 mapOverUniform3Tuple f (a,b,c) = (f a, f b, f c)
 
-oddPosForSticker :: (Fractional a) => FaceId -> XPos -> YPos -> (a,a,a)
-oddPosForSticker 0 x y = mapOverUniform3Tuple fromRational (toRational x,1.5,toRational $ (-1)*y) 
-oddPosForSticker 1 x y = mapOverUniform3Tuple fromRational (toRational x,toRational y,1.5) 
-oddPosForSticker 2 x y = mapOverUniform3Tuple fromRational ((-1.5),toRational x,toRational $ (-1)*y) 
-oddPosForSticker 3 x y = mapOverUniform3Tuple fromRational (toRational x,toRational $ (-1)*y,(-1.5)) 
-oddPosForSticker 4 x y = mapOverUniform3Tuple fromRational (1.5,toRational $ (-1)*x,toRational $ (-1)*y) 
-oddPosForSticker 5 x y = mapOverUniform3Tuple fromRational (toRational $ (-1)*x,-1.5,toRational $ (-1)*y)
+oddPosForSticker :: (Fractional a) => CubeSize -> FaceId -> XPos -> YPos -> (a,a,a)
+oddPosForSticker size 0 x y = mapOverUniform3Tuple fromRational (toRational x,(toRational size) / 2,toRational $ (-1)*y) 
+oddPosForSticker size 1 x y = mapOverUniform3Tuple fromRational (toRational x,toRational y,(toRational size) / 2) 
+oddPosForSticker size 2 x y = mapOverUniform3Tuple fromRational ((toRational size) / (-2),toRational x,toRational $ (-1)*y) 
+oddPosForSticker size 3 x y = mapOverUniform3Tuple fromRational (toRational x,toRational $ (-1)*y,(toRational size) / (-2)) 
+oddPosForSticker size 4 x y = mapOverUniform3Tuple fromRational ((toRational size) / 2,toRational $ (-1)*x,toRational $ (-1)*y) 
+oddPosForSticker size 5 x y = mapOverUniform3Tuple fromRational (toRational $ (-1)*x,(toRational size) / (-2),toRational $ (-1)*y)
 
 -- Determine the rotation in 3-space of all the sticker planes for a cube, which is solely determined by their faces
 rotationForSticker :: FaceId -> XPos -> YPos -> (Number, Number, Number)
@@ -64,9 +64,9 @@ getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absolut
           absoluteDSLCube = applyCube (dslCubeOfSize size) $ colorCube
 
 -- Build a scene frome that
-cubeScene :: AFrame
-cubeScene = scene $ do
-    getDSLsForCube $ flip applyPerms [rightMove 3 0, upMove 3 0, rightMove 3 0, rightMove 3 0, backMove 3 0] $ solvedCubeOfSize 3
+cubeScene :: IndexedCube -> AFrame
+cubeScene cube = scene $ do
+    getDSLsForCube cube
      
     entity $ do
         position (0,-5,5)
@@ -75,5 +75,6 @@ cubeScene = scene $ do
 --  Main function to create a 
 main :: IO ()
 main = do
+    cube <- randomCube 5
     args <- getArgs
-    webPage args cubeScene 
+    webPage args $ cubeScene cube

@@ -1,5 +1,6 @@
 module Rubiks where
 import Data.List
+import Control.Monad.Random
 
 -- Define our basic type with some useful synonyms
 type CubeSize = Int
@@ -216,4 +217,25 @@ checkerboardPerms size = concat $ zipWith (\a b -> [a,b]) moves moves
           bMoves = backPermsForCubeSize size
           moves = concat $ map everyOther' [rMoves, uMoves, bMoves]
 
+randomCubeAction :: IndexedCube -> IO IndexedCube
+randomCubeAction c@(Cube size _) = do
+    perm <- uniform (permsForCubeSize size)
+    return $ applyPerm c perm
+
+randomCube :: CubeSize -> IO IndexedCube
+randomCube size = do
+    let start = solvedCubeOfSize size
+    randomStep start
+
+randomStep :: IndexedCube -> IO IndexedCube
+randomStep c@(Cube size _) = do
+    choice <- Control.Monad.Random.fromList [(True, 0.005), (False, 0.995)]
+    if choice then return c else do
+        step <- randomCubeAction c
+        randomStep step 
+
+printRand :: IO ()
+printRand = do
+    cube <- randomCube 3
+    putStrLn $ show cube
 
