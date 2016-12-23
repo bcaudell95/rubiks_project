@@ -13,36 +13,7 @@ import System.Environment
 -- Mapping from (face, x, y) cube space to (x,y,z) global locations
 -- Output coordinates are the centers of the sticker planes
 posForSticker :: (Fractional a) => CubeSize -> FaceId -> XPos -> YPos -> (a,a,a)
-posForSticker size | odd size   = oddPosForSticker size
-                   | otherwise  = evenPosForSticker size
- 
--- Utility function to map over a uniformly-typed 3-tuple
-mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b)
-mapOverUniform3Tuple f (a,b,c) = (f a, f b, f c)
-
-
-oddPosForSticker :: (Fractional a) => CubeSize -> FaceId -> XPos -> YPos -> (a,a,a)
-oddPosForSticker size f x y = toFrac $ 
-    case f of 0 -> (dx , d  , dy' ) 
-              1 -> (dx , dy , d   ) 
-              2 -> (d' , dx , dy' ) 
-              3 -> (dx , dy', d'  ) 
-              4 -> (d  , dx', dy' ) 
-              5 -> (dx', d' , dy' )
-    where toFrac = mapOverUniform3Tuple fromRational
-          d = (toRational size) / 2
-          d' = (-1) * d
-          dx = toRational x
-          dx' = (-1) * dx
-          dy = toRational y
-          dy' = (-1) * dy
-
--- Utility function for always ``subtracting'' towards zero
-absSub :: (Num a, Ord a) => a -> a -> a
-absSub a b = if a >= 0 then a - b else a + b
-
-evenPosForSticker :: (Fractional a) => CubeSize -> FaceId -> XPos -> YPos -> (a,a,a)
-evenPosForSticker size f x y = toFrac $ 
+posForSticker size f x y = toFrac $ 
     case f of 0 -> (dx , d  , dy' ) 
               1 -> (dx , dy , d   ) 
               2 -> (d' , dx , dy' ) 
@@ -54,8 +25,16 @@ evenPosForSticker size f x y = toFrac $
           d' = (-1) * d
           dx = if odd size then toRational x else absSub (toRational x) 0.5
           dx' = (-1) * dx
-          dy = if odd size then toRational x else absSub (toRational $ y) 0.5
+          dy = if odd size then toRational y else absSub (toRational y) 0.5
           dy' = (-1) * dy
+
+-- Utility function to map over a uniformly-typed 3-tuple
+mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b)
+mapOverUniform3Tuple f (a,b,c) = (f a, f b, f c)
+
+-- Utility function for always ``subtracting'' towards zero
+absSub :: (Num a, Ord a) => a -> a -> a
+absSub a b = if a >= 0 then a - b else a + b
 
 -- Determine the rotation in 3-space of all the sticker planes for a cube, which is solely determined by their faces
 rotationForSticker :: FaceId -> XPos -> YPos -> (Number, Number, Number)
@@ -90,7 +69,7 @@ dslCubeOfSize size = Cube size $ stickerDSL size
 -- Pseudo-Applicative apply that with a given cube to create a cube with all our DSL's as data
 getDSLsForCube :: IndexedCube -> DSL [()]
 getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absoluteDSLCube 
-    where colorCube = fmap (flip div (size*size)) c
+    where colorCube = fmap (idToColor size) c
           relativeDSLCube = dslCubeOfSize size
           absoluteDSLCube = applyCube relativeDSLCube colorCube
 
@@ -106,6 +85,6 @@ cubeScene cube = scene $ do
 --  Main function to create a 
 main :: IO ()
 main = do
-    cube <- randomCube 6
+    cube <- randomCube 5
     args <- getArgs
     webPage args $ cubeScene cube
