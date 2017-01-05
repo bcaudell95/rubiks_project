@@ -1,5 +1,5 @@
 all:
-	ghc -o scene -main-is RubiksAFrame aframe.hs
+	ghc -o scene -main-is RubiksAFrame rubiksAframe.hs
 
 run:
 	make

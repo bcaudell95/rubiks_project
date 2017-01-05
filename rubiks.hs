@@ -230,6 +230,17 @@ backMove size i
 frontMove :: CubeSize -> Int -> PermutationFunc
 frontMove size i = reverseMove $ backMove size ((size - 1) - i)
 
+-- A few operations that will turn the cube as a whole to help the solver orient themself.
+-- These are notated as X,Y,Z rotations, with an apostrophe meaning CCW
+xRotation :: CubeSize -> PermutationFunc
+xRotation size = foldl (.) id $ map (rightMove size) [0..(size - 1)]
+
+yRotation :: CubeSize -> PermutationFunc
+yRotation size = foldl (.) id $ map (upMove size) [0..(size - 1)]
+
+zRotation :: CubeSize -> PermutationFunc
+zRotation size = foldl (.) id $ map (frontMove size) [0..(size - 1)]
+
 -- Utility function to take every other item from a list, starting with the first
 everyOther :: [a] -> [a]
 everyOther [] = []

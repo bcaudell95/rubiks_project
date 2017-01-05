@@ -116,8 +116,8 @@ outputScene fn cubes = do
 main :: IO ()
 main = do
     let cube1 = solvedCubeOfSize 3
-    let cube2 = applyPerm cube1 $ downMove 3 0
-    let cube3 = applyPerm cube1 $ downMove 3 1
-    let cube4 = applyPerm cube1 $ downMove 3 2
+    let cube2 = applyPerm cube1 $ xRotation 3
+    let cube3 = applyPerm cube1 $ yRotation 3
+    let cube4 = applyPerm cube1 $ zRotation 3
     args <- getArgs
     outputScene (head args) [(cube1, (-5,0,-5)), (cube2, (0,0,-5)), (cube3, (5,0,-5)), (cube4, (10,0,-5))]

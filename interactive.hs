@@ -31,5 +31,8 @@ moveCategory 'U' = Just upMove
 moveCategory 'D' = Just downMove
 moveCategory 'F' = Just frontMove
 moveCategory 'B' = Just backMove
+moveCategory 'X' = Just $ (\size _ -> xRotation size)
+moveCategory 'Y' = Just $ (\size _ -> yRotation size)
+moveCategory 'Z' = Just $ (\size _ -> zRotation size)
 moveCategory _ = Nothing
 
