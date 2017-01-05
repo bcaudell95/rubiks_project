@@ -1,5 +1,5 @@
 all:
-	ghc -o scene aframe.hs
+	ghc -o scene -main-is RubiksAFrame aframe.hs
 
 run:
 	make
@@ -10,4 +10,4 @@ view:
 	open output.html
 
 clean:
-	rm scene *.hi *.o
+	rm scene *.hi *.o output.html

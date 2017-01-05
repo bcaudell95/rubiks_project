@@ -1,4 +1,5 @@
 {-# LANGUAGE  RankNTypes, FlexibleInstances, UndecidableInstances, OverloadedStrings #-}
+module RubiksAFrame where
 import Rubiks
 
 import Data.String (IsString)
@@ -107,10 +108,16 @@ cubeScene cubesAndPositions = scene $ do
         position (0,-5,5)
         camera $ return ()
 
---  Main function to create a 
+--  Main function to output an HTML file with an aframe scene of some cubes
+outputScene :: String -> [(IndexedCube, (Number, Number, Number))] -> IO ()
+outputScene fn cubes = do
+    webPage [fn] $ cubeScene cubes
+
 main :: IO ()
 main = do
-    cube1 <- randomCube 5
-    cube2 <- randomCube 6
+    let cube1 = solvedCubeOfSize 3
+    let cube2 = applyPerm cube1 $ downMove 3 0
+    let cube3 = applyPerm cube1 $ downMove 3 1
+    let cube4 = applyPerm cube1 $ downMove 3 2
     args <- getArgs
-    webPage args $ cubeScene [(cube1, (0,0,-5)), (cube2, (-10,0,-5))]
+    outputScene (head args) [(cube1, (-5,0,-5)), (cube2, (0,0,-5)), (cube3, (5,0,-5)), (cube4, (10,0,-5))]

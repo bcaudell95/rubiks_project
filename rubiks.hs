@@ -151,7 +151,7 @@ rightSliceMove size slice = (\pos@(f,x,y) -> if notInSlice pos then pos else (f'
 inRSlice :: CubeSize -> SliceIndex -> (FaceIndex, XPos, YPos) -> Bool
 inRSlice size slice (f,x,y) = (f `elem` [0,1,3] && x == sliceX) || (f == 5 && x == (-1)*sliceX)
     where k = size `div` 2
-          range = if odd size then [k,k-1..(-1)*(k-1)] else [k,k-1..1] ++ [-1,-2..(-1)*(k-1)]
+          range = if odd size then [k,k-1..(-1)*k] else [k,k-1..1] ++ [-1,-2..(-1)*k]
           sliceX = range !! slice
 
 upPermsForCubeSize :: CubeSize -> [PermutationFunc]
@@ -167,7 +167,7 @@ upSliceMove size slice = (\pos@(f,x,y) -> if notInSlice pos then pos else (f' po
 inUSlice :: CubeSize -> SliceIndex -> (FaceIndex, XPos, YPos) -> Bool
 inUSlice size slice = (\pos@(f,x,y) -> (f == 1 && y == z) || (f == 2 && x == z) || (f == 3 && y == (-1)*z) || (f == 4 && x == (-1)*z))
     where k = size `div` 2
-          range = if odd size then [k,k-1..(-1)*(k-1)] else [k,k-1..1] ++ [-1,-2..(-1)*(k-1)]
+          range = if odd size then [k,k-1..(-1)*k] else [k,k-1..1] ++ [-1,-2..(-1)*k]
           z = range !! slice -- Will be either an x or y coord depending on the face
           
 
@@ -184,20 +184,51 @@ backSliceMove size slice = (\pos@(f,x,y) -> if notInSlice pos then pos else (f' 
 inBSlice :: CubeSize -> SliceIndex -> (FaceIndex, XPos, YPos) -> Bool
 inBSlice size slice (f,x,y) = f `elem` [0,2,4,5] && y == sliceY
     where k = size `div` 2
-          range = if odd size then [k,k-1..(-1)*(k-1)] else [k,k-1..1] ++ [-1,-2..(-1)*(k-1)]
+          range = if odd size then [k,k-1..(-1)*k] else [k,k-1..1] ++ [-1,-2..(-1)*k]
           sliceY = range !! slice
 
 -- Reverses a move by applying it three times
 reverseMove :: PermutationFunc -> PermutationFunc
 reverseMove move = move . move . move
 
+-- The above permutations represent all the R,B,U turns and slices, and these generate all possible cube states with no redundancy.
+-- They also fix the FLD corner in place and orientation, which may or may not eventually help with solution algorithms.
+-- For convenience, though, we will want to define turns of the other three faces.
+
+leftFaceMove :: CubeSize -> PermutationFunc
+leftFaceMove size = (reverseMove $ rightSliceMove size (size - 1)) . (faceRotationPerm 2)
+
+frontFaceMove :: CubeSize -> PermutationFunc
+frontFaceMove size = (reverseMove $ backSliceMove size (size - 1)) . (faceRotationPerm 1)
+
+downFaceMove :: CubeSize -> PermutationFunc
+downFaceMove size = (reverseMove $ upSliceMove size (size - 1)) . (faceRotationPerm 5)
+
 -- Convenience functions to make writing these permuation moves easier
 rightMove :: CubeSize -> Int -> PermutationFunc
-rightMove size i = (rightPermsForCubeSize size) !! i
+rightMove size i 
+    | i < (size - 1) = (rightPermsForCubeSize size) !! i
+    | i == (size - 1) = reverseMove $ leftFaceMove size
+
+leftMove :: CubeSize -> Int -> PermutationFunc
+leftMove size 0 = leftFaceMove size
+leftMove size i = reverseMove $ rightMove size ((size - 1) - i)
+
 upMove :: CubeSize -> Int -> PermutationFunc
-upMove size i = (upPermsForCubeSize size) !! i
+upMove size i 
+    | i < (size - 1) = (upPermsForCubeSize size) !! i
+    | i == size - 1 = reverseMove $ downFaceMove size
+
+downMove :: CubeSize -> Int -> PermutationFunc
+downMove size i = reverseMove $ upMove size ((size - 1) - i)
+
 backMove :: CubeSize -> Int -> PermutationFunc
-backMove size i = (backPermsForCubeSize size) !! i
+backMove size i 
+    | i < (size - 1) = (backPermsForCubeSize size) !! i
+    | i == size - 1 = reverseMove $ frontFaceMove size
+
+frontMove :: CubeSize -> Int -> PermutationFunc
+frontMove size i = reverseMove $ backMove size ((size - 1) - i)
 
 -- Utility function to take every other item from a list, starting with the first
 everyOther :: [a] -> [a]
