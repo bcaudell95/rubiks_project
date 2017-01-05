@@ -1,2 +1,5 @@
-report/*
-temp/*
+temp
+*.png
+*.swp
+report/.DS_Store
+.DS_Store
