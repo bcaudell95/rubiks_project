@@ -2,9 +2,11 @@ module RubiksInteractive where
 import RubiksAFrame
 import Rubiks
 
+import Data.Maybe
 import Data.List
 import Data.Char
 import System.Process
+import System.Console.Readline
 
 -- Translate a user-written description of the move to a PermutationFunc
 -- Examples:
@@ -35,4 +37,32 @@ moveCategory 'X' = Just $ (\size _ -> xRotation size)
 moveCategory 'Y' = Just $ (\size _ -> yRotation size)
 moveCategory 'Z' = Just $ (\size _ -> zRotation size)
 moveCategory _ = Nothing
+
+-- Uses the above function to apply a user-written sequence of moves to a cube
+parseAndApply :: IndexedCube -> String -> IndexedCube
+parseAndApply cube@(Cube size _) moves = applyPerms cube $ map (fromJust . (parseMove size)) $ words moves
+
+-- Writes the AFrame output to a file and displays in a web browser pop-up
+showCubeAFrame :: IndexedCube -> IO ()
+showCubeAFrame cube = do
+    let fn = "output.html"
+    outputScene fn [(cube, (0,0,-5)), (cube, (0,-7,-5))]
+    createProcess $ proc "open" [fn]
+    return ()
+
+mainLoop :: IndexedCube -> IO ()
+mainLoop cube@(Cube size _) = do
+    Just comm <- readline ">>"
+    if comm == "Q" || comm == "q" then return () else do
+        if comm == "show" then do
+            showCubeAFrame cube
+            mainLoop cube
+        else do
+            mainLoop $ parseAndApply cube comm
+
+main :: IO ()
+main = do
+    start <- randomCube 3
+    mainLoop start
+
 
