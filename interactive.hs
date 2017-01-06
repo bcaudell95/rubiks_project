@@ -1,5 +1,5 @@
 module RubiksInteractive where
-import RubiksAFrame
+import RubiksAFrame (outputScene)
 import Rubiks
 
 import Data.Maybe
@@ -73,8 +73,7 @@ mainLoop cube@(Cube size _) mph = do
 
 main :: IO ()
 main = do
-    --start <- randomCube 3
-    let start = applyPerm (solvedCubeOfSize 3) (rightMove 3 0)
+    start <- randomCube 3
     mainLoop start Nothing
 
 
