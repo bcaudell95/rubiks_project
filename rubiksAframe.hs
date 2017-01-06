@@ -93,25 +93,35 @@ getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absolut
           relativeDSLCube = dslCubeOfSize size
           absoluteDSLCube = applyCube relativeDSLCube colorCube
 
--- Takes a Cube, gets its construction DSLs, and wraps them in an entity with a position that can be moved
-positionCube :: IndexedCube -> (Number, Number, Number) -> DSL [()]
-positionCube c@(Cube size _) pos = entity $ do
+spinningAnimation :: DSL ()
+spinningAnimation = animation $ do
+    attribute_ "rotation"
+    dur 3000
+    fill "forwards"
+    to "0 360 0"
+    repeat_ "indefinite"
+
+-- Takes a Cube, gets its construction DSLs, and wraps them in an entity with a position that can be moved and animated (with a flag for the animation)
+positionCube :: IndexedCube -> (Number, Number, Number) -> Bool -> DSL [()]
+positionCube c@(Cube size _) pos animFlag = entity $ do
     position pos
+    if animFlag then spinningAnimation else return () 
     getDSLsForCube c
 
--- Build a scene frome that
-cubeScene :: [(IndexedCube, (Number, Number, Number))] -> AFrame
-cubeScene cubesAndPositions = scene $ do
-    sequence $ map (uncurry positionCube) cubesAndPositions
+-- Build a scene from that, with a flag for animation
+cubeScene :: [(IndexedCube, (Number, Number, Number))] -> Bool -> AFrame
+cubeScene cubesAndPositions anim = scene $ do
+    sequence $ zipWith3 positionCube (fst uz) (snd uz) (repeat anim)
      
     entity $ do
         position (0,-5,5)
         camera $ return ()
+    where uz = unzip cubesAndPositions
 
 --  Main function to output an HTML file with an aframe scene of some cubes
-outputScene :: String -> [(IndexedCube, (Number, Number, Number))] -> IO ()
-outputScene fn cubes = do
-    webPage [fn] $ cubeScene cubes
+outputScene :: String -> AFrame -> IO ()
+outputScene fn scene = do
+    webPage [fn] scene
 
 main :: IO ()
 main = do
@@ -119,5 +129,6 @@ main = do
     let cube2 = applyPerm cube1 $ xRotation 3
     let cube3 = applyPerm cube1 $ yRotation 3
     let cube4 = applyPerm cube1 $ zRotation 3
+    let cubes = [(cube1, (-5,0,-5)), (cube2, (0,0,-5)), (cube3, (5,0,-5)), (cube4, (10,0,-5))]
     args <- getArgs
-    outputScene (head args) [(cube1, (-5,0,-5)), (cube2, (0,0,-5)), (cube3, (5,0,-5)), (cube4, (10,0,-5))]
+    outputScene (head args) $ cubeScene cubes True 

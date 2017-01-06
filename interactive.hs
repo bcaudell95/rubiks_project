@@ -1,5 +1,5 @@
 module RubiksInteractive where
-import RubiksAFrame (outputScene)
+import RubiksAFrame (outputScene, cubeScene)
 import Rubiks
 
 import Data.Maybe
@@ -43,19 +43,17 @@ parseAndApply :: IndexedCube -> String -> IndexedCube
 parseAndApply cube@(Cube size _) moves = applyPerms cube $ map (fromJust . (parseMove size)) $ words moves
 
 -- Writes the AFrame output to a file and displays in a web browser pop-up
-showCubeAFrame :: IndexedCube -> IO ProcessHandle
-showCubeAFrame cube = do
+showCubeAFrame :: IndexedCube -> IO ()
+showCubeAFrame cube@(Cube size _) = do
+    let animFlag = cube == (solvedCubeOfSize size)
+
     let fn = "output.html"
-    outputScene fn [(cube, (0,0,-5)), (cube, (0,-7,-5))]
-    (_, _, _, ph) <- createProcess $ proc "open" [fn]
-    return ph
+    outputScene fn $ cubeScene [(cube, (0,0,-5)), (cube, (0,-7,-5))] animFlag
+    createProcess $ proc "open" [fn]
+    return ()
 
-terminateIfJust :: Maybe ProcessHandle -> IO ()
-terminateIfJust (Just ph) = terminateProcess ph
-terminateIfJust Nothing = return ()
-
-mainLoop :: IndexedCube -> Maybe ProcessHandle -> IO ()
-mainLoop cube@(Cube size _) mph = do
+mainLoop :: IndexedCube -> IO ()
+mainLoop cube@(Cube size _) = do
     if (solvedCubeOfSize size) == cube then do
         putStrLn "SOLVED!"
         return ()
@@ -64,16 +62,15 @@ mainLoop cube@(Cube size _) mph = do
         if comm == "Q" || comm == "q" then return () else do
             if comm == "show" then do
                 ph <- showCubeAFrame cube
-                mainLoop cube (Just ph)
+                mainLoop cube
             else do
                 let cube' = parseAndApply cube comm
-                terminateIfJust mph
-                ph <- showCubeAFrame cube'
-                mainLoop cube' (Just ph)
+                showCubeAFrame cube'
+                mainLoop cube'
 
 main :: IO ()
 main = do
     start <- randomCube 3
-    mainLoop start Nothing
+    mainLoop start
 
 
