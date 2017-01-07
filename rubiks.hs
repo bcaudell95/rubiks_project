@@ -27,9 +27,26 @@ instance (Show a) => Show (Cube a) where
     show cube@(Cube size _) = "Cube of size " ++ (show size) ++ " with ordered elements " ++ (concat . (intersperse ",") . (map show) $ elements)
         where elements = orderedElements cube 
 
+-- This sequence of moves "walks" a cube through all 23 other possible rotations of the cube.
+-- If the cube in question matches any prefix of this list applied to the target cube, then they are said to be equal as Rubiks Cube states
+eqSequence :: CubeSize -> [PermutationFunc]
+eqSequence = (<*>)
+    [                           yRotation, yRotation, yRotation
+    ,xRotation,                 yRotation, yRotation, yRotation
+    ,xRotation,                 yRotation, yRotation, yRotation
+    ,reverseMove . zRotation,   yRotation, yRotation, yRotation
+    ,zRotation,                 yRotation, yRotation, yRotation
+    ,zRotation,                 yRotation, yRotation, yRotation] . pure
+
+-- Function checks all the "stickers" of two cubes for equality
+strictEqual :: Eq a => Cube a -> Cube a -> Bool
+strictEqual c1@(Cube s1 f1) c2@(Cube s2 f2) = (s1 == s2) && (and [(f1 f x y) == (f2 f x y) | f <- [0..5], x <- range, y <- range])
+    where range = xyRangeForSize s1
+
+-- The generalized Eq instance needs to compare a cube against any rotation of the other cube, hence the above sequence of moves
 instance (Eq a) => Eq (Cube a) where
     (==) c1@(Cube size1 func1) c2@(Cube size2 func2) 
-        | (size1 == size2) = and [(func1 f x y) == (func2 f x y) | f <- [0..5], x <- range, y <- range]
+        | (size1 == size2) = or $ map (strictEqual c1) $ scanl applyPerm c2 $ eqSequence size1
         | otherwise = False
         where range = xyRangeForSize size1
 
