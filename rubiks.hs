@@ -53,6 +53,12 @@ instance (Eq a) => Eq (Cube a) where
 instance Functor Cube where
     fmap f (Cube size cubeFunc) = Cube size ((fmap . fmap . fmap) f cubeFunc)
 
+-- On 4x4 cubes and larger, it is possible to have more than one "solved" state because the StickerIndices might be permuted within
+--      each colored face (unbeknownst to the solver).  Thus, we may need this function to map cubes to a more user-significant
+--      definition of "equal"
+equalBy :: Eq b => (a -> b) -> Cube a -> Cube a -> Bool
+equalBy f c1 c2 = (fmap f c1) == (fmap f c2)
+
 -- Cube is not quite an applicative because of the size factor.  However, given two cubes of equal sizes, one with a function and one with a value, we can
 --      make them a pseudo-applicative functor with this function
 applyCube :: (Cube (a -> b)) -> (Cube a) -> (Maybe (Cube b))

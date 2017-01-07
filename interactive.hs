@@ -54,7 +54,7 @@ showCubeAFrame cube@(Cube size _) = do
 
 mainLoop :: IndexedCube -> IO ()
 mainLoop cube@(Cube size _) = do
-    if (solvedCubeOfSize size) == cube then do
+    if equalBy (idToColor size) (solvedCubeOfSize size) cube then do
         putStrLn "SOLVED!"
         return ()
     else do
@@ -70,7 +70,7 @@ mainLoop cube@(Cube size _) = do
 
 main :: IO ()
 main = do
-    start <- randomCube 3
+    start <- randomCube 4
     mainLoop start
 
 
