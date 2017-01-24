@@ -89,7 +89,7 @@ The subgroup of edges is slightly more complicated, but still not hard.  We have
 &= \mathbb{X}_2 \wr \mathfrak{S}_{12n-24}
 \end{align*}
 
-Finally, we have the corners.  As with the edges, we can position and orient these cubies, with one caveat.  In order to make the eventual assembly group element be unique, we will fix one corner both in terms of position and orientation.  Thus, any change in the rest of the corner subgroup or either of the other two factor groups will yield a unique reassembly.  This still allows for any reassembly because that cubie we fixed had to be \textit{somewhere}, and if we turn the cube as a whole in space to reposition it where we want it to be, then we've not changed the cube's structure.  Only given ourselves a handle to combat the overcounting.  Thus, we are left with 7 free corners that we can position in a symmetric group and orient in 3 ways each.  So we have \begin{align*}
+Finally, we have the corners.  As with the edges, we can position and orient these cubies, with one caveat.  In order to make the eventual assembly group element be unique, we will fix one corner both in terms of position and orientation.  Thus, any change in the rest of the corner subgroup or either of the other two factor groups will yield a unique reassembly.  This still allows for any reassembly because that cubie we fixed had to be \textit{somewhere}, and if we turn the cube as a whole in space to reposition it where we want it to be, then we've not changed the cube's structure.  We've only given ourselves a handle to combat the overcounting.  Thus, we are left with 7 free corners that we can position in a symmetric group and orient in 3 ways each.  So we have \begin{align*}
 \mathcal{A}_n^R
 &\cong\mathbb{Z}_3^7 \rtimes \mathfrak{S}_7 \\
 &= \mathbb{X}_3 \wr \mathfrak{S}_7
@@ -108,14 +108,26 @@ Having this group at our disposal, we can now mod it out by another group to rea
 \section{The Rubik Group}
 Even without proof, it is not hard to imagine that not all reassemblies of a Cube are reachable by valid moves.  It is common knowledge that taking any one edge of a cube and swapping the stickers on it creates an unsolvable puzzle.  This alone tells us that not all the reassemblies of a cube are in the Rubik's Group, which is formally defined to be the group of configurations that can be reached via legal turns of the Cube.  Equally, this group can be defined as the configurations one can solve the cube from.  To figure out its size, we need to mod the Assembly Group out by the group of actions we can take to change the cube to distinct, disjoint orbits.  We will denote the \textbf{Rubik Group of order n} by $\mathcal{R}_n$. \\
 
-Calculating the Rubik Group for arbitrarily-sized cubes is no small endeavor, so we will start with $\mathcal{R}_3$, the standard cube.  It is worth noting that the Assembly Group of order 3 contains about $5.19 \times 10^{20}$ elements, or 519 quintillion.  Quite a large number considering the small size of the standard cube.  So clearly, its Rubik Group will also contain a large number of elements.\\
+Calculating the Rubik Group for arbitrarily-sized cubes is no small endeavor, so we will start with $\mathcal{R}_3$, the standard cube.  It is worth noting that the Assembly Group of order 3 contains about $5.19 \times 10^{20}$ elements, or 519 quintillion.  Quite a large number considering the small size of the standard cube.  So clearly, its Rubik Group will also contain a large number of elements.
 
-We need to consider operations in the reassembly group that when taken on a solved cube (or, indeed, any cube in its orbit of the Rubik Group), will move it to a different orbit.  The first and easiest one is to swap the positions of \textit{either} two edges or two corners.  This corresponds to a transposition in the appropriate symmetric component of the reassembly group.  To see why this takes us out of the solvable orbit (which we will denote as $O_s$), we need to look at the cycle structure of any face turn of the standard cube. \\
+\subsection{Permuting the Centers}
+
+In our Assembly group $\mathcal{A}_n$, we allowed ourselves to freely permute the center cubies.  These gave rise to an appropriately-sized symmetric direct factor of that group.  When talking about solvable states, however, this is not allowed.  Because each legal Rubik move leaves all of the center cubies fixed in-place, they never move with respect to each other during a sequence.  This is important in solving because the solver will know which face must eventually end up which color in the solved state.  In calculating the size of the Rubik Group, we use this information to derive the first factor of our index $[\mathcal{R}_3 : \mathcal{A}_3]$. \\
+
+We know that in any solved state, the centers must have a particular positioning with respect to each other.  If one holds the cube with the white center up and the red sticker in front, then the blue sticker must be on the right-hand face.  The other three colors will be determined by the fact that red and orange are opposite, white and yellow are opposite, and blue and green are opposites.  Thus in a reassembly in $\mathcal{A}_3$, there are exactly 24 ``valid'' center cubie configurations.  This number arises because the cube as a whole can be rotated in any of 24 ways. \\
+
+To take this fact to a factor in our group index, we simply consider how many ways one may ``invalidly'' remove and rearrange the centers on the cube.  This number is the ratio $\frac{|\mathfrak{S}_6|}{24} = 30$.  This is a division rather than a subtraction because we are looking at the \textit{relative} configurations of the stickers rather than their absolute ones.  Each relative configuration leads to 24 absolute ones because the cube can just be rotated as a whole.  Thus, this 30 is our first factor of the index we desire.
+
+\subsection{Transposing Cubie Positions}
+
+The second way we can obtain a factor of the index is to consider the valid positions (not orientations) of the other cubies.  Consider what happens if one where to switch the positions of either two edges or two corners.  This corresponds to a transposition in the appropriate symmetric component of the reassembly group.  To see that this takes us out of the solvable orbit (which we will denote as $O_s$), we need to look at the cycle structure of any face turn of the standard cube. \\
 
 Up to isomorphism, any face turn on the 3-Cube is identical.  Consider the face turn on the white face here.  Directionality of the cycle doesn't matter with regards to cycle structure.
+
 \begin{center}
 \includegraphics[scale=.5]{images/faceCubieCycle.png} 
 \end{center}
+
 We are only concerning ourselves with cycles of the cubies; stickers and orientations will be considered later.  It is clear that this face turn consists of two four-cycles: one of the edge cubies (purple) and one on the corner cubies (cyan).  Since these are cycles of even length, they are odd permutations in the symmetric subgroups concerning the respective cubie permutations.  This means that applying one face turn to the solved cube will bring the cubie permutations out of their respective alternating subgroups, and a second face turn would bring them back.  Thus, any face turn toggles the parity (sign) of \textit{both} symmetric subgroups in tandem.  This means that the symmetric edge and corner components $S_{\text{edges}}, S_{\text{corners}}$ satisfy
 \begin{align*}
 (S_{\text{edges}},S_{\text{corners}})
@@ -124,9 +136,128 @@ We are only concerning ourselves with cycles of the cubies; stickers and orienta
 \cup
 (\bar{\mathfrak{A}_{12}} \times \bar{\mathfrak{A}_7})
 \end{align*}
-where $\mathfrak{A}_n$ is the alternating group of order.  This is just a restatement of the fact that the parities in the symmetric subgroups must be equal. \\
+where $\mathfrak{A}_n$ is the alternating group of order n.  This is just a restatement of the fact that these parities in the symmetric subgroups must be equal. \\
 
-This means that in a cube state in $O_s$, the edge positions are in an even parity with regards to their symmetric component if and only if the corners are as well, and likewise for odd parities.  Now, consider what happens if we apply a transposition on any two of the edges or corners.  WLOG, assume edges.  That will toggle the edge permutation parity, while preserving the parity of the corner pieces.  There is no legal move to fix this parity error, thus it is a different orbit.  This gives us a factor of 2 in the index $[\mathcal{A}_n : \mathcal{R}_n]$. \\
+This means that in a cube state in $O_s$, the edge positions are in an even parity with regards to their symmetric component if and only if the corners are as well, and likewise for odd parities.  Now, consider what happens if we apply a transposition on any two of the edges or corners.  WLOG, assume edges.  That will toggle the edge permutation parity, while preserving the parity of the corner pieces.  There is no legal move to fix this parity error, thus it is a different orbit.  This gives us a factor of 2 in the index $[\mathcal{A}_n : \mathcal{R}_n]$.
 
+\subsection{Flipping An Edge}
 
+In the first example of an illegal move, we focused on swapping two cubies without concern for any notion of ``orientation''.  We were merely concerned with the positions of the pieces, not their alignment.  This is enough to obtain a factor of 2 in the group index, or in other words, that the size of the Rubik Group $\mathcal{R}_n$ is at most half that of the size of the assembly group $\mathcal{A}_n$.  To continue with this question, however, we do need to talk about orientation of the cubies. \\
+
+Orientation of the edge cubies is simpler than that of the corners, so we will start there.  Orientation can be arbitrarily chosen, and our choice of orientation systems will not affect the eventual result, however it will be easier to talk about orientation if we choose an intuitive definition.  We will choose an orientation scheme that is homogenous across all of the faces of the cube.  On each of the 12 edge cubies, we will choose one sticker and place a dot on it.  This can be done in such a way that every cube face has two dots on it, and in particular it will be nice if those dots are on opposite sides of the faces.  Then, we will also put dots on the center cubies adjacent to the edge dots.  This will be used later to determine what we mean by orientation.  Here is one such example.
+
+\begin{center}
+\includegraphics[scale=.65]{images/edgeOrientation.png} 
+\end{center}
+
+One important caveat of this physical representation is that the purple dots on the center stickers do not rotate with the underlying cubie.  While hardly realistic, this is important because if it weren't the case, then you could end up with two purple dots adjacent to different stickers of the same edge cubie, rendering our orientation scheme meaningless.  The purple dots are purely there for reference.  With this orientation in mind, though, we can construct a graph of the 24 possible edge position-orientation pairs and the transitions they can undergo with a legal move.  This number arises because there are 12 edges and any of them can be in one of two orientations.  We will call the orientations where the cyan dot is aligned with a purple dot ``positive'' and the other scenario ``negative'' orientation.  There are twelve of each, and it turns out that graphing them out results in a very nice bipartite graph such as this one.
+
+\begin{center}
+\includegraphics[scale=.35]{images/Rubiks_Edge_Graph.jpg} 
+\end{center}
+
+The bipartiteness of this graph is very significant.  It tells us that given an edge cubie in some arbitrary position and orientation, any turn of a face that contains it will flip it to the opposite orientation.  Because this is true of all four edge cubies involved in that Rubik's move, this tells us that we can never toggle the orientation of an odd number of edges with any legal moves.  This means that any reassembly of the cubies that contains an odd number of positively (or, equivalently, negatively) oriented edges in this scheme cannot be solved using legal moves.  This gives us a factor of at least 2 in our index of the Rubik's Group. \\
+
+It is not immediately obvious, however, whether we can toggle the orientation of exactly two edges.  If this is impossible, then we have actually gained a factor of 4 rather than 2 in the index, as the number of positively-oriented edges for any legal state of the cube would have to be 0 mod 4 (i.e. one quarter of the possible assemblies).  The easiest way to disprove this possibility is to find a sequence of moves that flips in-place exactly two edges.  One such sequence is
+
+\begin{align*}
+(Ur)^4(U'r)^4
+\end{align*}
+
+Where the exponent signifies repetition of the steps and the lowercase r is, again, a slice move parallel to the right face. This sequence of moves flips in-place the UR and UL edges.  Using this knowledge, one can easily flip in-place any two arbitrary edges.  Simply conjugate the above sequence with a series of moves $S$ that puts the target edges into the UR and UL positions.  Moving the edge pieces there, flipping them, and then undoing the ``set-up moves'' as they are known to Rubik's Cube solvers is a safe, non-destructive way to flip any two arbitrary edges.  This knowledge combined with our previous statement from the graph proves that any cube state in the solvable orbit \textit{must} have an even number of positively-oriented edge pieces.  In particular, this shows that we gain a factor of exactly 2 in our index of the group, as desired.
+
+\subsection{Rotating a Lone Corner}
+
+We now wish to prove a similar result about the corner cubies.  While we could construct a graph similar to the one above for this purpose, it would not be as immediately useful.  The usefulness of the above graph came about primarily from its bipartiteness; a property that we were able to exploit.  Unfortunately, it is less clear what sort of ``graph property'' we could exploit for the corners, because they have three orientations rather than two.  Tripartiteness seems likely, but there is much less that we could say about a tripartite graph than a bipartite one.  Thus, we need to go a different route. \\
+
+We still would like to find some sort of ``invariant'' about the solvable orbit that leads us to information about the orientation of the corners.  Towards that end, we will first assign an orientation to each corner cubie.  Note that every corner cubie has either a white sticker or a yellow sticker, as these are opposite faces on the cube.  We can use this to fix an orientation on each piece.  To each sticker on the corner cubies, we will assign a number in $\mathbb{Z}_3$.  The white and yellow stickers will be given zeroes, and we will write 1 and 2 on the other stickers in a clockwise fashion.  This results in the following labelling of the stickers.
+
+\begin{center}
+\includegraphics[scale=1.5]{images/cornerOrientation.png} 
+\end{center}
+
+We will now look at the sum of the numbers on the white and yellow faces (as determined by their colored centers).  We will show that applying any sequence of moves to the cube will always leave this sum unchanged.  Since the solved cube has an orientation sum of 0, this will show that all solvable cube assemblies \textit{must} have an orientation sum of 0. \\
+
+We will look at each of the six standard face turns of the cube: U,D,L,R,F,B.  Assume without loss of generality that the white face is oriented up, and the red face is oriented to the front (as in the above picture).  Turning the white or yellow faces (U and D) are trivial with respect to corner orientation, as the numbers written on these faces will not change. \\
+
+For the other four standard moves, we can observe that they are all isomorphic with respect to corner orientation.  Looking at the front face (red above), starting from the upper-left corner sticker and running clockwise around that face, we read off the sequence 1,2,1,2.  This is the same for any of the F,R,B,L faces.  Thus, we only need to test one of these turns and the result will be valid for any of the four.  Without loss of generality, we choose the red front face to rotate clockwise.  Doing so will result in the following cube configuration:
+
+\begin{center}
+\includegraphics[scale=1.5]{images/rotatedCornerOrientation.png} 
+\end{center}
+
+Adding up the numbers on the white and yellow faces again, they sum to $6 \cong_3 0$.  In particular, we need to look at what happened to each of the four corner cubies that have moved.  This table outlines where each cubie was (including orientation), where it went to, and the change in its orientation value.
+
+\begin{center}
+\begin{tabular}{|c|c|c|}
+\hline 
+From	 & To & Orientation Change mod 3 \\ 
+\hline 
+FUL (0) & FUR (2) & +1 \\ 
+\hline 
+FUR (0) & FDR (2) & -1 $\cong$ +2 \\ 
+\hline 
+FDR (0) & FDL (1) & +1 \\ 
+\hline 
+FDL (0 & FUL (2) & -1 $\cong$ +2 \\ 
+\hline 
+\end{tabular} 
+\end{center}
+
+Consider applying this move to an arbitrarily-assembled cube.  We don't know what the initial and final orientation values on these four cubies would be, but we do know that the orientation \textit{change} for each cubie will be the same as above.  This is guaranteed because of how we have defined the orientation scheme.  As stated above, this same sort of result would be obtained for turning any of the four faces that are neither the top nor bottom, and they have an even simpler case.  Thus, we have shown that no standard Rubik's move will change the orientation sum of its configuration, and because the solved state has orientation sum zero, so must all the solvable configurations. \\
+
+Because exactly one third of possible assemblies have a corner orientation sum of zero, we have guaranteed that we will get at least a factor of 3 in the Rubik's Group index from this setup.  However, we have not yet shown that \textit{all} corner assemblies with orientation sum zero are solvable (which would make it exactly 3).  From what we have shown thus far, it could be the case that the solvable orbit of the cube does not contain every zero-orientation-sum assembly of the corners.  We will prove now that it, in fact, does. \\
+
+We have shown from above that one cannot construct a sequence of valid moves to rotate in-place a single corner, leaving the orientations of the others fixed.  Doing so would alter the orientation sum, which cannot happen.  It is possible, however, to rotate two adjacent corners in tandem, one clockwise and the other anti-clockwise.  That is best shown by an example move sequence. \\
+
+Let $S$ be the move sequence $R'D'RD$.  This is a standard one-line commutator in solving, and is a building block of the sequence we desire.  The entire sequence then looks like
+\begin{align*}
+S^2 U S^4 U' &= (R'D'RD)^2 U (R'D'RD)^4 U'
+\end{align*}
+
+This sequence rotates in-place the FUR and BUR corner cubies, the former being rotated counter-clockwise and the latter clockwise.  The resulting cube then looks like
+
+\begin{center}
+\includegraphics[scale=1.5]{images/twoCornersRotated.png} 
+\end{center}
+
+The orientation sum is still zero (as expected), as the orientation changes of these two counteract each other.  Note that this sequence can be easily adapted to rotate any two adjacent corners in a similar manner.  In fact, it can be adapted to rotate \textit{any} two corners similarly, but for our purposes we only need to know that any adjacent corners can be likewise rotated. \\
+
+The easiest way to see this is to let the above sequence be denoted as $\hat{S}$, and then conjugate it by some sequence of moves that put the target two cubies in the FUR and BUR positions.  If this sequence consists of simple whole-cube turns, then we will be rotating adjacent corners, and more complex sequences can be used to rotate arbitrary corner-pair.  Let $A$ be the sequence that moves the target two corners into the appropriate locations.  Then the sequence $A\hat{S}A^{-1}$ will perform the desired function.  It positions the target cubies appropriately, rotates them, and then moves them back to where they were.  This is totally non-destructive, as the only cubies affected by $\hat{S}$ are the corners being rotated. \\
+
+With this knowledge in mind, we can now construct a simple vector space and use some linear algebra to prove our claim.  Let $V$ be the vector space over the field $\mathbb{Z}_3^8$ obtained by mapping an ordered-sequence of the 8 corner cubies to their localized orientations in a given \textit{solvable} cube configuration.   Let $W$ be the vector space over the same field such that the sum of the components is 0.  Our previous proof shows that $V$ is a subspace of $W$, but we do not yet know if it is a proper subspace. \\
+
+Because we have shown that we can rotate any two adjacent corners in opposite directions, this gives rise to 12 generators for $V$.  These generators are column vectors $v$ such that $v_i = 1, v_j = 2 \Leftrightarrow $ corner cubies $i,j$ are adjacent.  We know that $W$ has dimension 7, as any vector can be thought of as 7 arbitrarily-chosen components, and then the eighth is fixed by the vector space description.  Thus, $V$ has dimension at most 7.  Assume for our purposes that we have ordered the 8 corner cubies as follows:
+
+\begin{center}
+\includegraphics[scale=1]{images/labelledWireframe.png} 
+\end{center}
+
+Then, we can look at seven such generating vectors that are the columns of the matrix
+
+\begin{align*}
+\begin{matrix}
+1 & 0 & 0 & 0 & 0 & 0 & 0 \\ 
+2 & 1 & 0 & 0 & 0 & 0 & 0 \\ 
+0 & 2 & 1 & 0 & 0 & 0 & 0 \\ 
+0 & 0 & 2 & 1 & 0 & 0 & 0 \\ 
+0 & 0 & 0 & 2 & 1 & 0 & 0 \\ 
+0 & 0 & 0 & 0 & 2 & 1 & 0 \\ 
+0 & 0 & 0 & 0 & 0 & 2 & 1 \\
+0 & 0 & 0 & 0 & 0 & 0 & 2 
+\end{matrix} 
+\end{align*}
+
+The columns of this matrix are independent, meaning its rows are 7 independent vectors in $W$.  Because all of these vectors can be realized in $V$ as well, and the number of vectors is equal to the dimension of $W$, we know that $V=W$.  This tells us that a cube assembly with a corner orientation sum of zero, corners can be rotated such that they are solved using legal moves.  This tells us that we obtain a factor of exactly 3 in the index of the Rubik's Group from the corner orientations.
+
+\subsection{Cardinality of the Group}
+From what we have proven in the previous few sections, we know that the index of the Rubik-3 Group in the Assembly-3 group, written $[\mathcal{R}_3 : \mathcal{A}_3] = 30 \cdot 2 \cdot 2 \cdot 3 = 360$.  Thus, the size of the Rubik Group can be calculated as \begin{align*}
+|\mathcal{R}_3| &= \frac{|\mathcal{A}_3|}{30 \cdot 2 \cdot 2 \cdot 3} \\
+&= \frac{7! \cdot 3^7 \cdot 12! \cdot 2^{12} \cdot 6!}{30 \cdot 2 \cdot 2 \cdot 3} \\
+&\approx 4.3252003 \times 10^{19}
+\end{align*}
+
+There is an important note to make here about how we handled duplicate ``assemblies'' in the assembly group.  To account for this, we fixed one corner piece in both position and orientation.  It is not immediately obvious how this was handled in the Rubik's Group or its index, but this was actually not a concern.  Because we never included any whole-cube rotations in $\mathcal{R}_3$, there is no way for duplicates to arise.  In this group, the center pieces are fixed and handle orientation of the puzzle, preventing duplicates.  To map this to an element of $\mathcal{A}_3$, one simply needs to locate the ``fixed'' corner cubie, and turn the cube as a whole to properly position and orient this cubie as needed for the assembly group. \\
+
+While this distinction could be important in describing the intricacies of $\mathcal{R}_3$ as a subgroup of $\mathcal{A}_3$, it is not important in talking about cardinalities.  To be pedantic, one could describe a group isomorphic to $\mathcal{R}_3$ that rotates cube states appropriately, and \textit{that} group would technically be a subgroup of $\mathcal{A}_3$.  If this distinction becomes important at a latter point, we will address it then.  For now, it is best left down in the weeds.
 \end{document}
