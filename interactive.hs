@@ -1,6 +1,7 @@
 module RubiksInteractive where
 import RubiksAFrame (outputScene, cubeScene)
 import Rubiks
+import Cubie
 
 import Data.Maybe
 import Data.List
@@ -33,9 +34,9 @@ moveCategory 'U' = Just upMove
 moveCategory 'D' = Just downMove
 moveCategory 'F' = Just frontMove
 moveCategory 'B' = Just backMove
-moveCategory 'X' = Just $ (\size _ -> xRotation size)
-moveCategory 'Y' = Just $ (\size _ -> yRotation size)
-moveCategory 'Z' = Just $ (\size _ -> zRotation size)
+moveCategory 'X' = Just $ const . xRotation 
+moveCategory 'Y' = Just $ const . yRotation
+moveCategory 'Z' = Just $ const . zRotation
 moveCategory _ = Nothing
 
 -- Uses the above function to apply a user-written sequence of moves to a cube
@@ -70,7 +71,7 @@ mainLoop cube@(Cube size _) = do
 
 main :: IO ()
 main = do
-    start <- randomCube 4
+    start <- randomCube 3
     mainLoop start
 
 
