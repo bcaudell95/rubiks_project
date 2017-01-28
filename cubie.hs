@@ -1,6 +1,6 @@
-module Rubiks.Cubie where
+module Cubie where
 import Rubiks
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isJust)
 import Control.Applicative (liftA2)
 
 -- A Cubie is a small cube-shaped plastic piece on a Rubik's Cube.  On the standard 3x3 Cube, there
@@ -27,22 +27,22 @@ type CubieComboFunc c s  = CubieFunc (Maybe (c, CubieStickerFunc s))
 -- This structure wraps up all of the above into a representation of 
 data CubieMap c s        = CubieMap CubeSize (CubieComboFunc c s)
 
--- Utility function to determine if a sticker coordinate lies on the outside of a face
 isOuterCoordinate :: CubeSize -> Int -> Bool
-isOuterCoordinate size coord = (abs coord) == (size `div` 2)
+isOuterCoordinate size c = (abs c) == (size `div` 2)
 
 -- These functions can be used to map the Cube representation defined in Rubiks to this representation
 getStickersFor :: Cube a -> CubieX -> CubieY -> CubieZ -> ThreeDimensionalDir -> Maybe a
 getStickersFor cube@(Cube size func) x y z d
-    | xEdge && (d == DirLeft)   = Just $ func 2 y      z 
-    | xEdge && (d == DirRight)  = Just $ func 4 ((-1)*y) z
-    | yEdge && (d == DirUp)     = Just $ func 0 x z
-    | yEdge && (d == DirDown)   = Just $ func 5 ((-1)*x) z
-    | zEdge && (d == DirFront)  = Just $ func 1 x      y
-    | zEdge && (d == DirBack)   = Just $ func 3 x      ((-1)*y)
+    | (x == k') && (d == DirLeft)   = Just $ func 2 y      z 
+    | (x == k ) && (d == DirRight)  = Just $ func 4 ((-1)*y) z
+    | (y == k ) && (d == DirUp)     = Just $ func 0 x z
+    | (y == k') && (d == DirDown)   = Just $ func 5 ((-1)*x) z
+    | (z == k') && (d == DirFront)  = Just $ func 1 x      y
+    | (z == k ) && (d == DirBack)   = Just $ func 3 x      ((-1)*y)
     | otherwise                 = Nothing
-    where xEdge:(yEdge:(zEdge:[])) = map (isOuterCoordinate size) [x,y,z] 
-
+    where k = size `div` 2
+          k' = (-1)*k
+ 
 getCubie :: Cube s -> CubieFunc c -> CubieComboFunc c s
 getCubie cube@(Cube size func) cf x y z 
     | or $ (map (isOuterCoordinate size)) [x,y,z] = Just $ (cVal, sFunc)
@@ -60,8 +60,11 @@ buildStdCubieMap = flip buildCubieMap $ const . const . const ()
 
 -- Creates an arbitrarily-ordered list of the cubies and their positions
 listCubies :: CubieMap c s -> [((CubieX, CubieY, CubieZ), c, CubieStickerFunc s)]
-listCubies c@(CubieMap size func) = [(\ (cubie, sFunc) -> ((x,y,z), cubie, sFunc)) $ fromJust $ func x y z | x <- range, y <- range, z <- range] 
+listCubies c@(CubieMap size func) = unwrapped 
     where range = xyRangeForSize size
+          maybeList = [((x,y,z), func x y z) | x <- range, y <- range, z <- range] 
+          filtered = filter (isJust . snd) maybeList
+          unwrapped = map (\(a,Just (b,c)) -> (a,b,c)) filtered
 
 -- And here we have the inverse of the above transformation, going from a CubieMap to a Cube
 cubiesToCube :: CubieMap c s -> Cube s

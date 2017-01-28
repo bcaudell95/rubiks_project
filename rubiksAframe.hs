@@ -1,13 +1,14 @@
 {-# LANGUAGE  RankNTypes, FlexibleInstances, UndecidableInstances, OverloadedStrings #-}
 module RubiksAFrame where
 import Rubiks
+import Cubie
 
 import Data.String (IsString)
 import Data.Text (Text, pack)
 import Text.AFrame
 import Text.AFrame.WebPage
 import Text.AFrame.DSL 
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isJust)
 
 import System.Environment
 
@@ -82,16 +83,76 @@ stickerDSL size f x y c = do
         color "#000000"
     where pos = posForSticker size f x y
 
+stickerRelPosition :: (Fractional a) => ThreeDimensionalDir -> (a, a, a)
+stickerRelPosition DirUp    = (0.0 ,0.5   ,0.0 )
+stickerRelPosition DirDown  = (0.0 ,-0.5  ,0.0 )
+stickerRelPosition DirLeft  = (-0.5,0.0   ,0.0 )
+stickerRelPosition DirRight = (0.5 ,0.0   ,0.0 )
+stickerRelPosition DirFront = (0.0 ,0.0   ,0.5 )
+stickerRelPosition DirBack  = (0.0 ,0.0   ,-0.5)
+
+rotationForSticker' :: (Fractional a) => ThreeDimensionalDir -> (a, a, a)
+rotationForSticker' DirUp    = (-90.0 ,0.0     ,0.0)
+rotationForSticker' DirFront = (0.0   ,0.0     ,0.0)
+rotationForSticker' DirLeft  = (0.0   ,-90.0   ,0.0)
+rotationForSticker' DirBack  = (0.0   ,180.0   ,0.0)
+rotationForSticker' DirRight = (0.0   ,90.0    ,0.0)
+rotationForSticker' DirDown  = (90.0  ,0.0     ,0.0)
+
+stickerDSL' :: Rubiks.Color -> ThreeDimensionalDir -> DSL ()
+stickerDSL' c dir = plane $ do
+        position $ stickerRelPosition dir
+        rotation $ rotationForSticker' dir
+        width 0.95
+        height 0.95
+        color $ hexForColor c
+
+cubieDSL :: CubieStickerFunc Rubiks.Color -> DSL ()
+cubieDSL func = do
+    box $ do
+        position $ (0,0,0)
+        width 1
+        height 1
+        scale (0.99, 0.99, 0.99)
+        color "#000000"
+
+    let maybeColorsAndDirs = fmap ((,) <$> func <*> id) dirs
+    let colorsAndDirs = fmap (\(a,b) -> (fromJust a, b)) $ filter (isJust . fst) maybeColorsAndDirs
+    sequence $ fmap (uncurry stickerDSL') colorsAndDirs
+
+    return ()
+
+    where dirs = [DirUp, DirDown, DirLeft, DirRight, DirFront, DirBack]
+
+-- To facilitate animation, we will have a "control entity" for each cubie, which extends it out from the origin
+dslControlForCubie :: CubeSize -> (CubieX, CubieY, CubieZ) -> CubieStickerFunc Rubiks.Color -> DSL ()
+dslControlForCubie size (cx, cy, cz) func = entity $ do
+    -- This is where cubie-specific animations will go once that is implemented
+    
+    entity $ do
+        -- We need to invert the Z component, because aframe uses the convention that positive z is towards the camera
+        let x' = if odd size then toRational cx else (toRational cx) `absSub` 0.5
+        let y' = if odd size then toRational cy else (toRational cy) `absSub` 0.5
+        let z' = (*(-1.0)) $ if odd size then toRational cz else (toRational $ cz) `absSub` 0.5
+    
+        position . (mapOverUniform3Tuple fromRational) $ (x', y', z')
+        cubieDSL func
+
+dslForCubieMap :: CubieMap c Rubiks.Color -> DSL ()
+dslForCubieMap c@(CubieMap size _) = entity $ do
+    let positionsAndCubies = listCubies c
+    sequence $ fmap (uncurry (dslControlForCubie size) . (\(a,_,c) -> (a,c))) positionsAndCubies
+    return ()
+
 -- Build an abstract Cube with the above function partially-applied as the data component
 dslCubeOfSize :: CubeSize -> Cube (Rubiks.Color -> DSL ())
 dslCubeOfSize size = Cube size $ stickerDSL size
 
 -- Pseudo-Applicative apply that with a given cube to create a cube with all our DSL's as data
-getDSLsForCube :: IndexedCube -> DSL [()]
-getDSLsForCube c@(Cube size _) = sequence . orderedElements . fromJust $ absoluteDSLCube 
+getDSLsForCube :: IndexedCube -> DSL ()
+getDSLsForCube c@(Cube size _) = dslForCubieMap cubieMap 
     where colorCube = fmap (idToColor size) c
-          relativeDSLCube = dslCubeOfSize size
-          absoluteDSLCube = applyCube relativeDSLCube colorCube
+          cubieMap = buildStdCubieMap colorCube
 
 spinningAnimation :: DSL ()
 spinningAnimation = animation $ do
@@ -102,21 +163,21 @@ spinningAnimation = animation $ do
     repeat_ "indefinite"
 
 -- Takes a Cube, gets its construction DSLs, and wraps them in an entity with a position that can be moved and animated (with a flag for the animation)
-positionCube :: IndexedCube -> (Number, Number, Number) -> Bool -> DSL [()]
+positionCube :: IndexedCube -> (Number, Number, Number) -> Bool -> DSL ()
 positionCube c@(Cube size _) pos animFlag = entity $ do
     position pos
     if animFlag then spinningAnimation else return () 
     getDSLsForCube c
 
--- Build a scene from that, with a flag for animation
+-- Build a scene from that, with a flag for solved animation
 cubeScene :: [(IndexedCube, (Number, Number, Number))] -> Bool -> AFrame
 cubeScene cubesAndPositions anim = scene $ do
-    sequence $ zipWith3 positionCube (fst uz) (snd uz) (repeat anim)
+    sequence $ zipWith3 positionCube cubes positions (repeat anim)
      
     entity $ do
         position (0,-5,5)
         camera $ return ()
-    where uz = unzip cubesAndPositions
+    where (cubes, positions) = unzip cubesAndPositions
 
 --  Main function to output an HTML file with an aframe scene of some cubes
 outputScene :: String -> AFrame -> IO ()

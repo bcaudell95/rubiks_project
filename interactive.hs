@@ -1,6 +1,7 @@
 module RubiksInteractive where
 import RubiksAFrame (outputScene, cubeScene)
 import Rubiks
+import Cubie
 
 import Data.Maybe
 import Data.List
@@ -68,11 +69,9 @@ mainLoop cube@(Cube size _) = do
                 showCubeAFrame cube'
                 mainLoop cube'
 
-edgeParity = [rightMove 4 1, rightMove 4 1, backMove 4 0, backMove 4 0, upMove 4 0, upMove 4 0, leftMove 4 1, upMove 4 0, upMove 4 0, reverseMove $ rightMove 4 1, upMove 4 0, upMove 4 0, rightMove 4 1, upMove 4 0, upMove 4 0, frontMove 4 0, frontMove 4 0, rightMove 4 1, frontMove 4 0, frontMove 4 0, reverseMove $ leftMove 4 1, backMove 4 0, backMove 4 0, rightMove 4 1, rightMove 4 1]
-
 main :: IO ()
 main = do
-    start <- return $ applyPerms (solvedCubeOfSize 4) edgeParity
+    start <- randomCube 3
     mainLoop start
 
 
