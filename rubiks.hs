@@ -1,6 +1,7 @@
 module Rubiks where
 import Data.List
 import Control.Monad.Random
+import Data.Maybe (fromJust)
 
 -- Define our basic type with some useful synonyms
 type CubeSize = Int
@@ -53,6 +54,14 @@ instance (Eq a) => Eq (Cube a) where
 instance Functor Cube where
     fmap f (Cube size cubeFunc) = Cube size ((fmap . fmap . fmap) f cubeFunc)
 
+showDifferences :: (Show a, Eq a) => (Cube a) -> (Cube a) -> [(a, (FaceId, XPos, YPos), (FaceId, XPos, YPos))]
+showDifferences c1@(Cube s1 f1) c2@(Cube s2 f2) = [(e, inFirst e, inSecond e) | e <- differences]
+        where xs = elementsAndPositions c1
+              ys = elementsAndPositions c2
+              differences = map fst $ filter (\(a,b) -> a /= b) $ zip (map fst xs) (map fst ys)
+              inFirst = (\e -> fromJust $ lookup e xs)
+              inSecond = (\e -> fromJust $ lookup e ys)
+
 -- On 4x4 cubes and larger, it is possible to have more than one "solved" state because the StickerIndices might be permuted within
 --      each colored face (unbeknownst to the solver).  Thus, we may need this function to map cubes to a more user-significant
 --      definition of "equal"
@@ -76,6 +85,11 @@ xyRangeForSize size = filter filterFunc [(-1)*k..k]
 -- Compute the ordered stickers of a cube
 orderedElements :: Cube a -> [a]
 orderedElements (Cube size stickerFunc) =  map (\(f,x,y) -> stickerFunc f x y) [(f,x,y) | f <- [0..5], x <- range, y <- range]
+    where range = xyRangeForSize size
+
+-- Creates an association list pairing up sticker values and their locations.  Useful for looking up where a particular element is.
+elementsAndPositions :: Cube a -> [(a, (FaceId, XPos, YPos))]
+elementsAndPositions (Cube size func) = [(func f x y, (f,x,y)) | f <- [0..5], x <- range, y <- range]
     where range = xyRangeForSize size
 
 -- Define functions to move between the spaces of (FaceId, X, Y) and StickerId

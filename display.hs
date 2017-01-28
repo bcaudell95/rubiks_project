@@ -37,6 +37,15 @@ drawPixelCube fn = (writePng ("images/" ++ fn)) . buildImageForCube
 drawCubeWith :: (CubeRenderable p) => Filename -> (Cube a) -> (a -> p) -> IO ()
 drawCubeWith fn cube func = drawPixelCube fn $ fmap func cube
 
+-- One function that can be used with drawCubeWith to show the sticker labels
+-- Encodes the sticker label to a base-256 three-digit number, then uses those digits as the pixel colors
+-- Note that this will only work properly if there are fewer that 256^3 stickers, but that isn't a problem with most cubes
+labelToRgbColor :: StickerId -> PixelRGBA8
+labelToRgbColor x = PixelRGBA8 r g b 255
+    where r = fromIntegral $ x `div` (256*256)
+          g = fromIntegral $ (x `mod` (256*256)) `div` 256
+          b = fromIntegral $ x `mod` 256
+
 -- Generalization of above function to any CubeRenderable cube
 buildImageForCube :: (CubeRenderable p) => (Cube p) -> (Image p)
 buildImageForCube cube@(Cube size _) = generateImage borderFunc width height

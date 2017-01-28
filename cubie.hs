@@ -1,6 +1,7 @@
 module Rubiks.Cubie where
 import Rubiks
 import Data.Maybe (fromJust)
+import Control.Applicative (liftA2)
 
 -- A Cubie is a small cube-shaped plastic piece on a Rubik's Cube.  On the standard 3x3 Cube, there
 --      are 26 total cubies.  They can be center cubies (with one sticker), edges (with two
@@ -13,15 +14,18 @@ data ThreeDimensionalDir = DirUp | DirDown | DirLeft | DirRight | DirFront | Dir
     deriving (Eq,Show)
 
 -- This structure should be able to be extended to higher-dimensional hypercubies in the future
-type Cubie a = (ThreeDimensionalDir -> Maybe a)
+type CubieStickerFunc s = ThreeDimensionalDir -> Maybe s
 
 type CubieX = Int
 type CubieY = Int
 type CubieZ = Int
 
--- Because cubies at "interior" coordinates don't really exist, we stick a Maybe here in this definition
-type CubieFunc a = CubieX -> CubieY -> CubieZ -> Maybe (Cubie a)
-data CubieMap a = CubieMap CubeSize (CubieFunc a)
+-- These function types are used to map from X,Y,Z coords to a cubie data value and CubieStickerFunc carrying sticker data
+type CubieFunc c         = CubieX -> CubieY -> CubieZ -> c
+type CubieComboFunc c s  = CubieFunc (Maybe (c, CubieStickerFunc s))
+
+-- This structure wraps up all of the above into a representation of 
+data CubieMap c s        = CubieMap CubeSize (CubieComboFunc c s)
 
 -- Utility function to determine if a sticker coordinate lies on the outside of a face
 isOuterCoordinate :: CubeSize -> Int -> Bool
@@ -39,25 +43,37 @@ getStickersFor cube@(Cube size func) x y z d
     | otherwise                 = Nothing
     where xEdge:(yEdge:(zEdge:[])) = map (isOuterCoordinate size) [x,y,z] 
 
-getCubie :: Cube a -> CubieX -> CubieY -> CubieZ -> Maybe (Cubie a)
-getCubie cube@(Cube size func) x y z 
-    | or $ (map (isOuterCoordinate size)) [x,y,z] = Just $ getStickersFor cube x y z
+getCubie :: Cube s -> CubieFunc c -> CubieComboFunc c s
+getCubie cube@(Cube size func) cf x y z 
+    | or $ (map (isOuterCoordinate size)) [x,y,z] = Just $ (cVal, sFunc)
     | otherwise = Nothing 
+        where cVal = cf x y z
+              sFunc = getStickersFor cube x y z 
 
-buildCubeMap :: Cube a -> CubieMap a
-buildCubeMap c@(Cube size _) = CubieMap size $ getCubie c
+-- Uses the above functions to build a CubieMap structure with both cubie data and sticker data
+buildCubieMap :: Cube a -> CubieFunc c -> CubieMap c a
+buildCubieMap c@(Cube size _) cf = CubieMap size $ getCubie c cf
+
+-- A simple use case of the above function where the cubie data is a null unit value
+buildStdCubieMap :: Cube a -> CubieMap () a
+buildStdCubieMap = flip buildCubieMap $ const . const . const ()
+
+-- Creates an arbitrarily-ordered list of the cubies and their positions
+listCubies :: CubieMap c s -> [((CubieX, CubieY, CubieZ), c, CubieStickerFunc s)]
+listCubies c@(CubieMap size func) = [(\ (cubie, sFunc) -> ((x,y,z), cubie, sFunc)) $ fromJust $ func x y z | x <- range, y <- range, z <- range] 
+    where range = xyRangeForSize size
 
 -- And here we have the inverse of the above transformation, going from a CubieMap to a Cube
-cubiesToCube :: CubieMap a -> Cube a
-cubiesToCube m@(CubieMap size func) = Cube size $ stickerAt m 
+cubiesToCube :: CubieMap c s -> Cube s
+cubiesToCube m@(CubieMap size _) = Cube size $ stickerAt m 
 
-stickerAt :: CubieMap a -> FaceId -> XPos -> YPos -> a 
+stickerAt :: CubieMap c s -> FaceId -> XPos -> YPos -> s 
 stickerAt m@(CubieMap size func) f x y = case f of
-    0 -> fromJust $ (fromJust $ func x  k  y ) DirUp
-    1 -> fromJust $ (fromJust $ func x  y  k ) DirFront
-    2 -> fromJust $ (fromJust $ func k' x  y ) DirLeft
-    3 -> fromJust $ (fromJust $ func x  y' k ) DirBack
-    4 -> fromJust $ (fromJust $ func k  x' y ) DirRight
-    5 -> fromJust $ (fromJust $ func x' k' y ) DirDown
+    0 -> fromJust $ snd (fromJust $ func x  k  y ) $ DirUp
+    1 -> fromJust $ snd (fromJust $ func x  y  k ) $ DirFront
+    2 -> fromJust $ snd (fromJust $ func k' x  y ) $ DirLeft
+    3 -> fromJust $ snd (fromJust $ func x  y' k ) $ DirBack
+    4 -> fromJust $ snd (fromJust $ func k  x' y ) $ DirRight
+    5 -> fromJust $ snd (fromJust $ func x' k' y ) $ DirDown
     where k = size `div` 2
           x':(y':(k':[])) = map (*(-1)) [x,y,k] -- Defined for convencience in referencing negatives
