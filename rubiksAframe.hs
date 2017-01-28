@@ -32,6 +32,9 @@ data AnimDir = Forwards | Backwards
 
 type RawAnimationCubieMap a = CubieMap [Maybe (AnimAxis, AnimDir)] a
 
+animationDuration :: Int
+animationDuration = 5000
+
 -- Utility function to map over a uniformly-typed 3-tuple
 mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b)
 mapOverUniform3Tuple f (a,b,c) = (f a, f b, f c)
@@ -89,17 +92,18 @@ cubieDSL func = do
 
     where dirs = [DirUp, DirDown, DirLeft, DirRight, DirFront, DirBack]
 
-animationFromAnimData :: Int -> AnimData -> DSL ()
-animationFromAnimData index (delay, start, end) = primitiveEntity (pack $ "animation__" ++ show index) $ do
-    attribute "property" ("rotation" :: Text)
-    attribute "delay" (pack $ show delay)
-    attribute "from" (pack $ show start)
-    attribute "end" (pack $ show end)
+animationFromAnimData :: (Attributes f ) => Int -> AnimData -> f ()
+animationFromAnimData index (delay, start, end) = attribute (Label . pack $  "animation__" ++ show index) $ pack $
+    "property: rotation; " ++
+    ("delay: " ++ show delay ++ "; ") ++
+    ("from: " ++ show start ++ "; ") ++
+    ("to: " ++ show end ++ "; ") ++
+    ("dur: " ++ show animationDuration ++ ";")
 
 -- To facilitate animation, we will have a "control entity" for each cubie, which extends it out from the origin
 dslControlForCubie :: CubeSize -> (CubieX, CubieY, CubieZ) -> [AnimData] -> CubieStickerFunc Rubiks.Color -> DSL ()
 dslControlForCubie size (cx, cy, cz) anims func = entity $ do
-    -- This is where cubie-specific animations will go once that is implemented
+    sequence $ zipWith animationFromAnimData  [0..] anims
     
     entity $ do
         -- We need to invert the Z component, because aframe uses the convention that positive z is towards the camera
@@ -113,7 +117,7 @@ dslControlForCubie size (cx, cy, cz) anims func = entity $ do
 dslForCubieMap :: CubieMap c Rubiks.Color -> DSL ()
 dslForCubieMap c@(CubieMap size _) = entity $ do
     let positionsAndCubies = listCubies c
-    sequence $ fmap (\(a,_,c) -> dslControlForCubie size a [] c) positionsAndCubies
+    sequence $ fmap (\(a,_,c) -> dslControlForCubie size a [(0, RotationVec (0,0,0), RotationVec (270, 270, 270))] c) positionsAndCubies
     return ()
 
 -- Pseudo-Applicative apply that with a given cube to create a cube with all our DSL's as data
@@ -134,7 +138,7 @@ spinningAnimation = animation $ do
 positionCube :: IndexedCube -> (Number, Number, Number) -> Bool -> DSL ()
 positionCube c@(Cube size _) pos animFlag = entity $ do
     position pos
-    if animFlag then spinningAnimation else return () 
+    --if animFlag then spinningAnimation else return () 
     getDSLsForCube c
 
 -- Build a scene from that, with a flag for solved animation
