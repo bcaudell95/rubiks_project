@@ -95,7 +95,7 @@ cubieDSL func = do
 animationFromAnimData :: (Attributes f ) => Int -> AnimData -> f ()
 animationFromAnimData index (delay, start, end) = attribute (Label . pack $  "animation__" ++ show index) $ pack $
     "property: rotation; " ++
-    ("delay: " ++ show delay ++ "; ") ++
+    (if index > 0 then "startEvents: animation__" ++ show (index -1)  ++ "-complete; " else "") ++
     ("from: " ++ show start ++ "; ") ++
     ("to: " ++ show end ++ "; ") ++
     ("dur: " ++ show animationDuration ++ ";")
@@ -117,7 +117,8 @@ dslControlForCubie size (cx, cy, cz) anims func = entity $ do
 dslForCubieMap :: CubieMap c Rubiks.Color -> DSL ()
 dslForCubieMap c@(CubieMap size _) = entity $ do
     let positionsAndCubies = listCubies c
-    sequence $ fmap (\(a,_,c) -> dslControlForCubie size a [(0, RotationVec (0,0,0), RotationVec (270, 270, 270))] c) positionsAndCubies
+    let testAnims = [(0, RotationVec (0,0,0), RotationVec (270, 270, 270)), (5000, RotationVec (270, 270, 270), RotationVec (270, 0, 270))]
+    sequence $ fmap (\(a,_,c) -> dslControlForCubie size a testAnims c) positionsAndCubies
     return ()
 
 -- Pseudo-Applicative apply that with a given cube to create a cube with all our DSL's as data
