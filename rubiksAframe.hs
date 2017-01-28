@@ -5,12 +5,32 @@ import Cubie
 
 import Data.String (IsString)
 import Data.Text (Text, pack)
+import Data.List (intersperse)
 import Text.AFrame
 import Text.AFrame.WebPage
 import Text.AFrame.DSL 
 import Data.Maybe (fromJust, isJust)
 
 import System.Environment
+
+type AnimDelay = Int
+-- A Vector of mod-360 rotation values (currently Ints, could be changed)
+newtype RotationVec = RotationVec (Int, Int, Int)
+
+instance Show RotationVec where
+    show (RotationVec (delay, start, end)) = concat $ intersperse " " [show delay, show start, show end]
+
+type AnimData = (AnimDelay, RotationVec, RotationVec)
+
+-- Each cubie contains a processed list of animations that it needs to perform
+type AnimationCubieMap a = CubieMap [AnimData] a
+
+-- This type is the unprocessed version of the above data.  All cubies have equivalent-length lists of Maybe (AnimAxis, AnimDir) which will be turned
+--      into an AnimationCubieMap
+data AnimAxis = AxisX | AxixY | AxisZ
+data AnimDir = Forwards | Backwards
+
+type RawAnimationCubieMap a = CubieMap [Maybe (AnimAxis, AnimDir)] a
 
 -- Utility function to map over a uniformly-typed 3-tuple
 mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b)
@@ -69,9 +89,16 @@ cubieDSL func = do
 
     where dirs = [DirUp, DirDown, DirLeft, DirRight, DirFront, DirBack]
 
+animationFromAnimData :: Int -> AnimData -> DSL ()
+animationFromAnimData index (delay, start, end) = primitiveEntity (pack $ "animation__" ++ show index) $ do
+    attribute "property" ("rotation" :: Text)
+    attribute "delay" (pack $ show delay)
+    attribute "from" (pack $ show start)
+    attribute "end" (pack $ show end)
+
 -- To facilitate animation, we will have a "control entity" for each cubie, which extends it out from the origin
-dslControlForCubie :: CubeSize -> (CubieX, CubieY, CubieZ) -> CubieStickerFunc Rubiks.Color -> DSL ()
-dslControlForCubie size (cx, cy, cz) func = entity $ do
+dslControlForCubie :: CubeSize -> (CubieX, CubieY, CubieZ) -> [AnimData] -> CubieStickerFunc Rubiks.Color -> DSL ()
+dslControlForCubie size (cx, cy, cz) anims func = entity $ do
     -- This is where cubie-specific animations will go once that is implemented
     
     entity $ do
@@ -86,7 +113,7 @@ dslControlForCubie size (cx, cy, cz) func = entity $ do
 dslForCubieMap :: CubieMap c Rubiks.Color -> DSL ()
 dslForCubieMap c@(CubieMap size _) = entity $ do
     let positionsAndCubies = listCubies c
-    sequence $ fmap (uncurry (dslControlForCubie size) . (\(a,_,c) -> (a,c))) positionsAndCubies
+    sequence $ fmap (\(a,_,c) -> dslControlForCubie size a [] c) positionsAndCubies
     return ()
 
 -- Pseudo-Applicative apply that with a given cube to create a cube with all our DSL's as data
