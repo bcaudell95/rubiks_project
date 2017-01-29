@@ -155,22 +155,22 @@ spinningAnimation = animation $ do
     repeat_ "indefinite"
 
 -- Takes a Cube, gets its construction DSLs, and wraps them in an entity with a position that can be moved and animated (with a flag for the animation)
-positionCube :: IndexedCube -> (Number, Number, Number) -> Bool -> DSL ()
-positionCube c@(Cube size _) pos animFlag = entity $ do
+positionCube :: RawAnimationCubieMap StickerId -> (Number, Number, Number) -> Bool -> DSL ()
+positionCube c@(CubieMap size _) pos animFlag = entity $ do
     position pos
     --if animFlag then spinningAnimation else return () 
-    getDSLsForCube cubieMap
-    where cubieMap = buildCubieMap c (\x y z -> if y == 0 then [Just (AxisY, Backwards)] else [])
+    getDSLsForCube c
 
 -- Build a scene from that, with a flag for solved animation
 cubeScene :: [(IndexedCube, (Number, Number, Number))] -> Bool -> AFrame
 cubeScene cubesAndPositions anim = scene $ do
-    sequence $ zipWith3 positionCube cubes positions (repeat anim)
+    sequence $ zipWith3 positionCube cubes' positions (repeat anim)
      
     entity $ do
         position (0,-5,5)
         camera $ return ()
     where (cubes, positions) = unzip cubesAndPositions
+          cubes' = fmap (flip buildCubieMap (\x y z -> if z == 0 then [Just (AxisZ, Forwards), Nothing, Just (AxisZ, Forwards)] else [])) cubes
 
 --  Main function to output an HTML file with an aframe scene of some cubes
 outputScene :: String -> AFrame -> IO ()
