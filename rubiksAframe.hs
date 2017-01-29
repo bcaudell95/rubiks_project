@@ -20,6 +20,10 @@ newtype RotationVec = RotationVec (Int, Int, Int)
 instance Show RotationVec where
     show (RotationVec (delay, start, end)) = concat $ intersperse " " [show delay, show start, show end]
 
+instance Monoid RotationVec where
+    mempty = RotationVec (0,0,0)
+    (RotationVec (a1, a2, a3)) `mappend` (RotationVec (b1, b2, b3)) = RotationVec  (a1 + b1, a2 + b2, a3 + b3)
+
 type AnimData = (AnimDelay, RotationVec, RotationVec)
 
 -- Each cubie contains a processed list of animations that it needs to perform
@@ -27,13 +31,30 @@ type AnimationCubieMap a = CubieMap [AnimData] a
 
 -- This type is the unprocessed version of the above data.  All cubies have equivalent-length lists of Maybe (AnimAxis, AnimDir) which will be turned
 --      into an AnimationCubieMap
-data AnimAxis = AxisX | AxixY | AxisZ
+data AnimAxis = AxisX | AxisY | AxisZ
 data AnimDir = Forwards | Backwards
 
 type RawAnimationCubieMap a = CubieMap [Maybe (AnimAxis, AnimDir)] a
 
 animationDuration :: Int
-animationDuration = 5000
+animationDuration = 2000
+
+applyAnimationForRotation :: RotationVec -> (AnimAxis, AnimDir) -> RotationVec
+applyAnimationForRotation start (AxisX, Forwards)  = start `mappend` (RotationVec ( 90,   0,   0))
+applyAnimationForRotation start (AxisX, Backwards) = start `mappend` (RotationVec (-90,   0,   0))
+applyAnimationForRotation start (AxisY, Forwards)  = start `mappend` (RotationVec (  0,  90,   0))
+applyAnimationForRotation start (AxisY, Backwards) = start `mappend` (RotationVec (  0, -90,   0))
+applyAnimationForRotation start (AxisZ, Forwards)  = start `mappend` (RotationVec (  0,   0,  90))
+applyAnimationForRotation start (AxisZ, Backwards) = start `mappend` (RotationVec (  0,   0, -90))
+
+processAnimationChain :: RotationVec -> [Maybe (AnimAxis, AnimDir)] -> [AnimData]
+processAnimationChain _ [] = []
+processAnimationChain start (Nothing:as) = ((animationDuration, start, start): processAnimationChain start as)
+processAnimationChain start ((Just rot):as) = ((animationDuration, start, end): processAnimationChain end as) 
+    where end = applyAnimationForRotation start rot
+
+processRawAnimationCubieMap :: RawAnimationCubieMap a -> AnimationCubieMap a
+processRawAnimationCubieMap = mapOverCubies (processAnimationChain mempty) 
 
 -- Utility function to map over a uniformly-typed 3-tuple
 mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b)
@@ -114,18 +135,17 @@ dslControlForCubie size (cx, cy, cz) anims func = entity $ do
         position . (mapOverUniform3Tuple fromRational) $ (x', y', z')
         cubieDSL func
 
-dslForCubieMap :: CubieMap c Rubiks.Color -> DSL ()
-dslForCubieMap c@(CubieMap size _) = entity $ do
-    let positionsAndCubies = listCubies c
-    let testAnims = [(0, RotationVec (0,0,0), RotationVec (270, 270, 270)), (5000, RotationVec (270, 270, 270), RotationVec (270, 0, 270))]
-    sequence $ fmap (\(a,_,c) -> dslControlForCubie size a testAnims c) positionsAndCubies
+dslForCubieMap :: RawAnimationCubieMap Rubiks.Color -> DSL ()
+dslForCubieMap cube@(CubieMap size _) = entity $ do
+    let positionsAndCubies = listCubies . processRawAnimationCubieMap $ cube
+    sequence $ (\(a,b,c) -> zipWith3 (dslControlForCubie size) a b c) $ unzip3 $ positionsAndCubies
     return ()
 
 -- Pseudo-Applicative apply that with a given cube to create a cube with all our DSL's as data
 getDSLsForCube :: IndexedCube -> DSL ()
 getDSLsForCube c@(Cube size _) = dslForCubieMap cubieMap 
     where colorCube = fmap (idToColor size) c
-          cubieMap = buildStdCubieMap colorCube
+          cubieMap = buildCubieMap colorCube (\x y z -> if x == 0 then [Just (AxisX, Forwards)] else [] )
 
 spinningAnimation :: DSL ()
 spinningAnimation = animation $ do
