@@ -162,15 +162,14 @@ positionCube c@(CubieMap size _) pos animFlag = entity $ do
     getDSLsForCube c
 
 -- Build a scene from that, with a flag for solved animation
-cubeScene :: [(IndexedCube, (Number, Number, Number))] -> Bool -> AFrame
+cubeScene :: [(RawAnimationCubieMap StickerId, (Number, Number, Number))] -> Bool -> AFrame
 cubeScene cubesAndPositions anim = scene $ do
-    sequence $ zipWith3 positionCube cubes' positions (repeat anim)
+    sequence $ zipWith3 positionCube cubes positions (repeat anim)
      
     entity $ do
         position (0,-5,5)
         camera $ return ()
     where (cubes, positions) = unzip cubesAndPositions
-          cubes' = fmap (flip buildCubieMap (\x y z -> if z == 0 then [Just (AxisZ, Forwards), Nothing, Just (AxisZ, Forwards)] else [])) cubes
 
 --  Main function to output an HTML file with an aframe scene of some cubes
 outputScene :: String -> AFrame -> IO ()
@@ -184,5 +183,6 @@ main = do
     let cube3 = applyPerm cube1 $ yRotation 3
     let cube4 = applyPerm cube1 $ zRotation 3
     let cubes = [(cube1, (-5,0,-5)), (cube2, (0,0,-5)), (cube3, (5,0,-5)), (cube4, (10,0,-5))]
+    let cubes' = fmap (\(c,p) -> ((flip buildCubieMap (\x y z -> if z == 0 then [Just (AxisZ, Forwards), Nothing, Just (AxisZ, Backwards)] else [])) $ c, p)) cubes
     args <- getArgs
-    outputScene (head args) $ cubeScene cubes True 
+    outputScene (head args) $ cubeScene cubes' True 
