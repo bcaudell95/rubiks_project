@@ -142,10 +142,9 @@ dslForCubieMap cube@(CubieMap size _) = entity $ do
     return ()
 
 -- Pseudo-Applicative apply that with a given cube to create a cube with all our DSL's as data
-getDSLsForCube :: IndexedCube -> DSL ()
-getDSLsForCube c@(Cube size _) = dslForCubieMap cubieMap 
-    where colorCube = fmap (idToColor size) c
-          cubieMap = buildCubieMap colorCube (\x y z -> if x == 0 then [Just (AxisX, Forwards)] else [] )
+getDSLsForCube :: RawAnimationCubieMap StickerId -> DSL ()
+getDSLsForCube c@(CubieMap size _) = dslForCubieMap colorCube 
+    where colorCube = mapOverStickers (idToColor size) c
 
 spinningAnimation :: DSL ()
 spinningAnimation = animation $ do
@@ -160,7 +159,8 @@ positionCube :: IndexedCube -> (Number, Number, Number) -> Bool -> DSL ()
 positionCube c@(Cube size _) pos animFlag = entity $ do
     position pos
     --if animFlag then spinningAnimation else return () 
-    getDSLsForCube c
+    getDSLsForCube cubieMap
+    where cubieMap = buildCubieMap c (\x y z -> if y == 0 then [Just (AxisY, Backwards)] else [])
 
 -- Build a scene from that, with a flag for solved animation
 cubeScene :: [(IndexedCube, (Number, Number, Number))] -> Bool -> AFrame

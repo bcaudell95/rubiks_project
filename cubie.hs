@@ -27,8 +27,12 @@ type CubieComboFunc c s  = CubieFunc (Maybe (c, CubieStickerFunc s))
 -- This structure wraps up all of the above into a representation of 
 data CubieMap c s        = CubieMap CubeSize (CubieComboFunc c s)
 
+--Pseudo-Functor abilities that map over the cubie values and the sticker values
 mapOverCubies :: (c1 -> c2) -> CubieMap c1 s -> CubieMap c2 s
 mapOverCubies f (CubieMap size f1) = CubieMap size (\x y z -> fmap (\(a,b) -> (f a, b)) $ f1 x y z)
+
+mapOverStickers :: (s1 -> s2) -> CubieMap c s1 -> CubieMap c s2
+mapOverStickers f (CubieMap size f1) = CubieMap size (\x y z -> fmap (\(a,b) -> (a, (\d -> fmap f $ b d))) $ f1 x y z)
 
 isOuterCoordinate :: CubeSize -> Int -> Bool
 isOuterCoordinate size c = (abs c) == (size `div` 2)
