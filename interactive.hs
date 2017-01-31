@@ -1,5 +1,5 @@
 module RubiksInteractive where
-import RubiksAFrame (outputScene, cubeScene)
+import RubiksAFrame hiding (main) 
 import Rubiks
 import Cubie
 
@@ -43,13 +43,45 @@ moveCategory _ = Nothing
 parseAndApply :: IndexedCube -> String -> IndexedCube
 parseAndApply cube@(Cube size _) moves = applyPerms cube $ map (fromJust . (parseMove size)) $ words moves
 
+-- Takes a starting cube and a sequence of commands and translates it into a RawAnimationCubieMap
+buildRawAnimationCubieMap :: IndexedCube -> String -> RawAnimationCubieMap StickerId 
+buildRawAnimationCubieMap c@(Cube size func) command = buildCubieMap c animFunc
+    where animFunc = getRawAnimationSequence size $ words command
+
+-- Parses a sequence of commands into a sequence of raw animations
+getRawAnimationSequence :: CubeSize -> [String] -> CubieX -> CubieY -> CubieZ -> [Maybe (AnimAxis, AnimDir)]
+getRawAnimationSequence size commands x y z = fmap (\comm -> getSingleRawAnimation size comm x y z) commands
+
+-- Parses a single user input, but this time turns it into a Cubie function denoting a possible raw animation move
+getSingleRawAnimation :: CubeSize -> String -> CubieX -> CubieY -> CubieZ -> Maybe (AnimAxis, AnimDir)
+getSingleRawAnimation size command x y z = do
+    let (firstChar, afterFirst) = (head command, tail command) 
+    let shouldReverse = (not $ null afterFirst) && (head afterFirst) == '\''
+    let afterReverse = if shouldReverse then tail afterFirst else afterFirst
+    let slice = if null afterReverse then 0 else (read afterReverse) :: Int
+   
+    foo@(axis, dir) <- rawAnimationCategory size firstChar x y z slice
+    if shouldReverse then return (axis, reverseAnimDir dir) else return foo
+    
+    
+rawAnimationCategory :: CubeSize -> Char -> CubieX -> CubieY -> CubieZ -> Int -> Maybe (AnimAxis, AnimDir)
+rawAnimationCategory size 'R' x y z slice = if (slice < size) && ((xyRangeForSize size) !! ((size - 1) - slice)) == x then Just (AxisX, Backwards) else Nothing
+rawAnimationCategory size 'L' x y z slice = if (slice < size) && ((xyRangeForSize size) !! slice) == x                then Just (AxisX, Forwards)  else Nothing
+rawAnimationCategory size 'U' x y z slice = if (slice < size) && ((xyRangeForSize size) !! ((size - 1) - slice)) == y then Just (AxisY, Backwards) else Nothing
+rawAnimationCategory size 'D' x y z slice = if (slice < size) && ((xyRangeForSize size) !! slice) == y                then Just (AxisY, Forwards)  else Nothing
+rawAnimationCategory size 'B' x y z slice = if (slice < size) && ((xyRangeForSize size) !! ((size - 1) - slice)) == z then Just (AxisZ, Forwards)  else Nothing
+rawAnimationCategory size 'F' x y z slice = if (slice < size) && ((xyRangeForSize size) !! slice) == z                then Just (AxisZ, Backwards) else Nothing
+rawAnimationCategory size 'X' _ _ _ _ = Just (AxisX, Backwards)
+rawAnimationCategory size 'Y' _ _ _ _ = Just (AxisY, Backwards)
+rawAnimationCategory size 'Z' _ _ _ _ = Just (AxisZ, Backwards)
+
 -- Writes the AFrame output to a file and displays in a web browser pop-up
-showCubeAFrame :: IndexedCube -> IO ()
-showCubeAFrame cube@(Cube size _) = do
-    let animFlag = cube == (solvedCubeOfSize size)
+showCubeAFrame :: RawAnimationCubieMap StickerId -> IO ()
+showCubeAFrame cube@(CubieMap size _) = do
+    let solved = (cubiesToCube cube) == (solvedCubeOfSize size)
 
     let fn = "output.html"
-    outputScene fn $ cubeScene [(cube, (0,0,-5)), (cube, (0,-7,-5))] animFlag
+    outputScene fn $ cubeScene [(cube, (0,0,-5)), (cube, (0,-7,-5))] solved
     createProcess $ proc "open" [fn]
     return ()
 
@@ -62,11 +94,12 @@ mainLoop cube@(Cube size _) = do
         Just comm <- readline ">>> "
         if comm == "Q" || comm == "q" then return () else do
             if comm == "show" then do
-                ph <- showCubeAFrame cube
+                ph <- showCubeAFrame $ buildCubieMap cube (const . const . const [])
                 mainLoop cube
             else do
                 let cube' = parseAndApply cube comm
-                showCubeAFrame cube'
+                let animCube = buildRawAnimationCubieMap cube comm
+                showCubeAFrame animCube
                 mainLoop cube'
 
 main :: IO ()

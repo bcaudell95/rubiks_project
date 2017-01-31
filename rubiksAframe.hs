@@ -7,7 +7,7 @@ import Data.String (IsString)
 import Data.Text (Text, pack)
 import Data.List (intersperse)
 import Text.AFrame
-import Text.AFrame.WebPage
+import Text.AFrame.WebPage hiding (webPage)
 import Text.AFrame.DSL 
 import Data.Maybe (fromJust, isJust)
 
@@ -38,6 +38,10 @@ type RawAnimationCubieMap a = CubieMap [Maybe (AnimAxis, AnimDir)] a
 
 animationDuration :: Int
 animationDuration = 2000
+
+reverseAnimDir :: AnimDir -> AnimDir
+reverseAnimDir Forwards = Backwards
+reverseAnimDir Backwards = Forwards
 
 applyAnimationForRotation :: RotationVec -> (AnimAxis, AnimDir) -> RotationVec
 applyAnimationForRotation start (AxisX, Forwards)  = start `mappend` (RotationVec ( 90,   0,   0))
@@ -175,6 +179,11 @@ cubeScene cubesAndPositions anim = scene $ do
 outputScene :: String -> AFrame -> IO ()
 outputScene fn scene = do
     webPage [fn] scene
+
+webPage :: [String] -> AFrame -> IO ()        
+webPage [fileOut] af = do
+    file <- readFile "animated.html"
+    writeFile fileOut $ injectAFrame af $ file
 
 main :: IO ()
 main = do
