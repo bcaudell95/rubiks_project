@@ -4,11 +4,11 @@
 \contentsline {section}{\numberline {1.3}Larger Cubes}{3}
 \contentsline {chapter}{\numberline {2}Groups in the Rubik's Cube}{4}
 \contentsline {section}{\numberline {2.1}The Sticker Group}{4}
-\contentsline {section}{\numberline {2.2}The Color Group}{4}
-\contentsline {section}{\numberline {2.3}The (Re)assembly Group}{5}
-\contentsline {section}{\numberline {2.4}The Rubik Group}{6}
-\contentsline {subsection}{\numberline {2.4.1}Permuting the Centers}{6}
-\contentsline {subsection}{\numberline {2.4.2}Transposing Cubie Positions}{7}
-\contentsline {subsection}{\numberline {2.4.3}Flipping An Edge}{8}
-\contentsline {subsection}{\numberline {2.4.4}Rotating a Lone Corner}{10}
-\contentsline {subsection}{\numberline {2.4.5}Cardinality of the Group}{13}
+\contentsline {section}{\numberline {2.2}The (Re)assembly Group}{4}
+\contentsline {section}{\numberline {2.3}The Faithful Reassembly Group}{6}
+\contentsline {section}{\numberline {2.4}The Rubik Group}{9}
+\contentsline {subsection}{\numberline {2.4.1}Permuting the Centers}{9}
+\contentsline {subsection}{\numberline {2.4.2}Transposing Cubie Positions}{10}
+\contentsline {subsection}{\numberline {2.4.3}Flipping An Edge}{11}
+\contentsline {subsection}{\numberline {2.4.4}Rotating a Lone Corner}{13}
+\contentsline {subsection}{\numberline {2.4.5}Cardinality of the Group}{16}

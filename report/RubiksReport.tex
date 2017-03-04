@@ -47,64 +47,136 @@ If we were to take all the stickers off of the plastic cube body and rearrange t
 
 Clearly, this is an extremely loose upper bound on the number of possible states of a valid Cube.  Let us go one level closer to the answer to our question.
 
-\section{The Color Group}
-As we mentioned, the Sticker Group makes the assumption that each sticker is distinguishable.  While this assumption is warranted in certain cases, from a solver's perspective, there really is no difference between different stickers of the same color, except in rare cases.  For instance, some 7x7 Cubes are ``pillowed'' such that the sides of the cube bulge out for various manufacturing and ergonomic reasons.  In this case, edge and corner stickers are different shapes to accommodate the shape of the (not really) cube.  This is a rare case, however, and generally we can regard the stickers of a color as being indistinguishable.\\
-
-This gives rise to a smaller group of permutations of stickers subject to this indistinguishability.  We define a map $\pi : [6n^2] \rightarrow [6]$ where $[k] = \{1,2,...,k\}$.  The image of this map is the color set of the cube.  This map assigns each ``sticker index'' to its color, and evenly partitions the stickers into six color blocks each of size $n^2$.  We can use this map to partition the full group $\mathcal{S}_n$ into equivalence classes based on $\sigma_1 =_\pi \sigma_2 \iff (\pi \cdot \sigma_1) = (\pi \cdot \sigma_2)$ as functions, i.e. the color of the stickers at every location in the two stickerings  is the same. \\
-
-Thus, we arrive at the quotient group $\mathcal{S}_n \slash \mathfrak{S}_{n^2}^6$.  The factor of this quotient group comes from the equivalence class of the identity in $\mathcal{S}_n$ -- the solved cube state.  We can permute any stickers within each of the 6 faces, and there are $n^2$ stickers in each.  We will refer to this quotient group as the \textbf{Color Group of order n}, denoted $\mathcal{C}_n \cong \mathcal{S}_n \slash \mathfrak{S}_{n^2}^6$. Its cardinality can be easily counted as \begin{align*}
-|\mathcal{C}_n| &= [\mathcal{S}_n : \mathfrak{S}_{n^2}^6] \\
-&= \frac{|\mathcal{S}_n|}{|\mathfrak{S}_{n^2}^6|} \\
-&= \frac{(6n^2)!}{(n^2!)^6}
-\end{align*}
-which we know will be a positive integer by definition of index. \\
-
-While still not very close to the Rubik's Group we desire, it is useful to consider this group because of the equivalence relation it is defined on.  When we talk about a ``solved state'' of a cube of order n, we currently have no guarantee of its uniqueness in $\mathcal{S}_n$.  While clearly there is a unique solved state in the basic 3-Cube (because all pieces are distinguishable by their stickers), this need not hold for larger cubes.  Since larger cubes have cubies that look that same (multiple centers per face, multiple edge cubies with the same two colors), we can imagine a case where a solver correctly solves the cube, returning each face to a solid color, but unknowingly swaps some indistinguishable pieces along the way.  While this cube state is not the identity in $\mathcal{S}_n$, it is the identity in $\mathcal{C}_n$. \\
-
-We now turn our attention away from the stickers of the cube, and to the pieces themselves.  Since these are the items the solver interacts with, working with them is more likely to give us the number of states of the cube.
-
 \section{The (Re)assembly Group}
-Instead of moving the stickers around freely, what if we leave the stickers alone and move the pieces around the cube?  By that, I mean taking the cube apart and arbitrarily reassembling the cubies.  This number of possible reassemblies is certainly smaller than $|\mathcal{C}_n|$, but what is its size?  The calculation is slightly harder, but still not difficult. \\
+Instead of moving the stickers around freely, what if we leave the stickers alone and move the pieces around the cube?  By that, I mean taking the cube apart and arbitrarily reassembling the cubies.  In such a reassembly, we will respect each cubie type.  Corners must remain corners, etc.  We will \textit{not}, however, assume respect of different sub-types of cubie.  Consider, for instance, a cube of order 5.  Such a cube has three ``sub-types'' of center cubie: the true centers, the cubies laterally adjacent to each of those, and finally the remaining centers adjacent to those.  Note that we refer to all of these cubies as ``centers'' despite the fact that most of them are not truly in the center of a face (this is where standard cubing terminology breaks down somewhat).  In a reassembly, we will not assume that true-centers remain true-centers, etc.  This distinction will be accounted for later.  The number of possible reassemblies is certainly smaller than $|\mathcal{S}_n|$, but what is its size?  The calculation is slightly harder, but still not difficult. \\
 
 Given a cube of order $n$, how many of each type of cubie are there?  Well, there will always be 8 corners.  There will always be 12 ``edge segments'' on the cube, each of which will contain $n-2$ pieces, so that gives us $12n - 24$ edge cubies.  For the center cubies (which, again, need not actually be at the centers of faces), there are 6 faces' worth, each having $(n-2)^2$.  So some algebra gives us that there are a total of $6(n^2  - 4n + 4) = 6n^2 - 24n + 24$ total center cubies. \\
 
-So we know that the number of reassemblies will have as factors the possible permutations of these three types of cubies.  We also need to consider the fact that the edges and corners have multiple orientations per piece, though.  Each edge has 2 orientations, and each corner has 3.  From this information, we can calculate the number of possible cube reassemblies.  We will call this algrebraic group the \textbf{Assembly/Reassembly Group of order n}, and denote it by $\mathcal{A}_n$.  This group is clearly a subgroup of $\mathcal{S}_n$, though not necessarily of $\mathcal{C}_n$ as we are making no guarantees about indistinguishability of similar pieces.  We can calculate its cardinality as \begin{align*}
-|\mathcal{A}_n| &= \frac{8! \cdot 3^8 \cdot (12n-24)! \cdot 2^{12n-24} \cdot (6n^2 - 24n + 24)!}{24} \\
-&= 7! \cdot 3^7 \cdot (12n-24)! \cdot 2^{12n-24} \cdot (6n^2 - 24n + 24)!
+So we know that the number of reassemblies will have as factors the possible permutations of these three types of cubies.  We also need to consider the fact that the edges and corners have multiple orientations per piece, though.  Each edge has 2 orientations, and each corner has 3.  From this information, we can calculate the number of possible cube reassemblies.  We will call this algrebraic group the \textbf{Assembly/Reassembly Group of order n}, and denote it by $\mathcal{A}_n$.  While it is not immediately obvious that a group structure is present, this will be clear by the end of the section.  This group is clearly a subgroup of $\mathcal{S}_n$ as any reassembly can be thought of as a rearrangement of stickers, but the converse statement is not true as the sticker group is far more general.  We can calculate the number of reassemblies by \begin{align*}
+|\mathcal{A}_n| &= 8! \cdot 3^8 \cdot (12n-24)! \cdot 2^{12n-24} \cdot (6n^2 - 24n + 24)!
 \end{align*}
-This calculation arises fairly obviously just from considering the number of each piece and our freedom to arrange them.  The division by 24 accounts for the fact that any given reassembly of the cube will be overcounted by a factor of 24 since we can rotate the cube freely in space in 24 orientations without really changing the assembly of the cubies.  In group theory, we can use this same information to arrive at a decomposition for $\mathcal{A}_n$ into subgroups for each piece type.  Since the arrangements of center, edge, and corner cubies are all independent, we can write a direct product
+This calculation arises just from considering the number of each piece and our freedom to arrange them.  In group theory, we can use this same information to arrive at a decomposition for $\mathcal{A}_n$ into subgroups for each piece type.  Since the arrangements of center, edge, and corner cubies are all independent, we can write a direct product
 \begin{align*}
 \mathcal{A}_n \cong
 \mathcal{A}_n^C \times
 \mathcal{A}_n^E \times
 \mathcal{A}_n^R
 \end{align*}
-where the terms are the subgroups concerning assemblies of the centers, edges, and corners, respectively.  These subgroups are easier to work with.  The previous factor of 24 will be addressed in the subgroup of corners. \\
+where the terms are the subgroups concerning assemblies of the centers, edges, and corners, respectively.  Note that the notation for these subgroups will not be used often beyond this section; it is being used here purely to derive a simpler formula for $\mathcal{A}_n$.  These subgroups are easier to work with. \\
 
-The subgroup of permutations of the centers is just a symmetric group of the appropriate size.  Since we don't need to worry about orientations of these stickers (as rotating a sticker by itself on a Cube has no significance), this group isomorphism is obvious. $ \mathcal{A}_n^C \cong \mathfrak{S}_{6n^2 - 24n + 24}$. \\
+The subgroup of permutations of the centers is just a symmetric group of the appropriate size.  Since we don't need to worry about orientations of these stickers (as rotating a sticker by itself on a Cube has no significance), this group isomorphism is just a simple symmetric group. $ \mathcal{A}_n^C \cong \mathfrak{S}_{6n^2 - 24n + 24}$. \\
 
-The subgroup of edges is slightly more complicated, but still not hard.  We have $12n-24$ edges that can be positioned freely, giving a symmetric group.  On top of that, we can also orient each edge in one of two ways.  Thus, each edge orientation is an element of $\mathbb{Z}_2$.  We can express the interaction of these two groups using either a semidirect product or wreath product.\begin{align*}
+The subgroup of edges is slightly more complicated, but still not hard.  We have $12n-24$ edges that can be positioned freely, giving a symmetric group.  On top of that, we can also orient each edge in one of two ways.  Thus, each edge orientation is an element of $\mathbb{Z}_2$.  We can express the interaction of these two groups using either a semidirect product or wreath product.  The wreath product $A \wr \mathfrak{S}_n$ can be informally described as ``let each letter in the symmetric group be itself an element of group $A$''.  In this specific case, each item being permuted (an edge) also contains an orientation, which can be thought of as an element of $\mathbb{Z}_2$.  It is not immediately clear exactly what the elements of $\mathbb{Z}_2, (\hat{0}, \hat{1}),$ mean in terms of an orientation of an edge cubie, but we could (and later will) define an orientation scheme that resolves this.  For now, we just need to recognize that each edge cubie can be in one of two orientations, to be defined later.
+\begin{align*}
 \mathcal{A}_n^E 
 &\cong\mathbb{Z}_2^{12n-24} \rtimes \mathfrak{S}_{12n-24} \\
-&= \mathbb{X}_2 \wr \mathfrak{S}_{12n-24}
+&= \mathbb{Z}_2 \wr \mathfrak{S}_{12n-24}
 \end{align*}
 
-Finally, we have the corners.  As with the edges, we can position and orient these cubies, with one caveat.  In order to make the eventual assembly group element be unique, we will fix one corner both in terms of position and orientation.  Thus, any change in the rest of the corner subgroup or either of the other two factor groups will yield a unique reassembly.  This still allows for any reassembly because that cubie we fixed had to be \textit{somewhere}, and if we turn the cube as a whole in space to reposition it where we want it to be, then we've not changed the cube's structure.  We've only given ourselves a handle to combat the overcounting.  Thus, we are left with 7 free corners that we can position in a symmetric group and orient in 3 ways each.  So we have \begin{align*}
+Finally, we have the corners.  As with the edges, we can freely position and orient these cubies.  There are exactly 8 corner cubies for any cube size, and they can all be ordered in one of three orientations.  Just as in the edge subgroup, we can express this relationship most succinctly using a wreath product.  Again, we will not concern ourselves with the exact meaning of the orientations coming from $\mathbb{Z}_3$, but we will formally define this later.  So we have \begin{align*}
 \mathcal{A}_n^R
-&\cong\mathbb{Z}_3^7 \rtimes \mathfrak{S}_7 \\
-&= \mathbb{X}_3 \wr \mathfrak{S}_7
+&\cong\mathbb{Z}_3^8 \rtimes \mathfrak{S}_8 \\
+&= \mathbb{Z}_3 \wr \mathfrak{S}_8
 \end{align*}
 
 With all this, we can write the Assembly group as a direct product of known components:
 \begin{align*}
 \mathcal{A}_n \cong
 \mathfrak{S}_{6n^2 - 24n + 24} \times
-(\mathbb{X}_2 \wr \mathfrak{S}_{12n-24}) \times
-(\mathbb{X}_3 \wr \mathfrak{S}_7)
+(\mathbb{Z}_2 \wr \mathfrak{S}_{12n-24}) \times
+(\mathbb{Z}_3 \wr \mathfrak{S}_8)
 \end{align*}
-and the cardinality checks out.  It is worth reiterating here that we are not worrying about indistinguishability based on colors of stickers.  Within this group, there are many reassemblies that look the same because cubies look alike.  It is not hard to mod this group out by the group of such indistinguishable reassemblies, but we will omit this calculation as it is very similar to that of the Color Group and generally less useful. \\
+and the cardinality checks out.  There is a very important note about this reassembly group.  There are a large number of ``duplicate'' assemblies because of how freely we are allowed to permute and arrange cubies.  For any assembly, there will be exactly 23 other elements of $\mathcal{A}_n$ that represent the same assembly being rotated as a whole cube.  Even the ``solved'' assembly will have duplicates that correspond to the different ways the solver can hold the cube.  We will address this important caveat shortly, but this assembly group is an excellent starting place for talking about the number of reachable states in the Rubik's Cube.\\
 
-Having this group at our disposal, we can now mod it out by another group to reach our goal.
+Note that we have decomposed the supposed-group $\mathcal{A}_n$ into a direct product of three subgroups (two of which are wreath products).  Each of these three are clearly groups.  The first is a standard symmetric group, and the latter are well-defined wreath product groups.  Thus, their direct product $\mathcal{A}_n$ is also a group, with its group operation being well-defined by direct product.  Specifically, group elements can be thought of as bijections on the set \begin{align*}
+[6n^2 -24n + 24] \times \mathbb{Z}_2^{12n - 24} \times [12n - 24] \times \mathbb{Z}_8^{8} \times [8]
+\end{align*}
+with group multiplication being composition of such bijections.  In terms of cubies, the identity element of this group is the solved state.  As mentioned before, there are at least 24 solved states (I say at least for reasons that will be discussed much later).  We will handle these duplicates shortly.  \\
+
+We will now further refine this assembly group to get one step closer to our goal.
+
+\section{The Faithful Reassembly Group}
+We mentioned in the previous section that the assembly group does not concern itself with sub-types of cubies.  While this blindness simplifies its calculation, it will lose most of its usefulness in larger cubes (order-5 and above).  As such, we need to introduce the notion of a \textbf{faithful} reassembly.  Such a reassembly respects the sub-types of cubies permuted.  An edge piece adjacent to a corner will remain as such after the assembly is applied, for instance.  This idea brings us to a subgroup of $\mathcal{A}_n$ known as the \textbf{Faithful Assembly Group}, denoted $\mathcal{A}_n^f$.  \\
+
+This image clarifies what is meant by ``sub-types'' of cubie.  The letter denotes the type ((C)enter, (E)dge, or co(R)ner), and the number (if one is given) denotes the sub-type.  From looking at the image and thinking about turns on the cube, it is not hard to see that legal moves preserve sub-types.  In the case of face turns, cubies cycle amongst their subtype.  In slice moves, the same thing happens, but may not be quite as immediately obvious.
+
+\begin{center}
+\includegraphics[scale=.5]{images/professorsCubeLabelled.png} 
+\end{center}
+
+The set of all faithful reassemblies is clearly a subset of the assemblies, and the set also contains the solved state because that is a faithful reassembly.  Composing two faithful reassemblies will still yield a faithful reassembly, thus this set is closed under composition.  All of the other group properties are transferred from the parent group, thus the faithful reassemblies are a subgroup of $\mathcal{A}_n$. \\
+
+It is important to note that for cubes of order-3 (the standard cube), the assemblies and faithful assemblies are the exact same group.  There is only one sub-type for each type of cubie, so every assembly is inherently faithful.  When we finally calculate the number of possible configurations for the standard cube, this faithfulness will not play a role.  We are merely establishing this constraint for larger cubes. \\
+
+To calculate the cardinality of this group, we need to know the number of sub-types.  The corners are trivial, as there are exactly 8 corners for any cube size.  Note that any corner can take on any of the 8 positions using legal moves, meaning that they comprise one sub-type.  Thus, the corner subgroup of the faithful assembly group is the same as the related subgroup in the original assembly group. \\
+
+Next, we will consider the edge cubies.  As shown above in the 5x5 cubes, there are two sub-types of edge cubie: those at the midpoints of edges and those adjacent to midpoints.  Again, observe that there is no legal move to turn a midpoint edge cubie into the other sub-type.  Note that the edge cubies adjacent to the midpoints are one sub-type, and we do not distinguish between those on the left and right of the midpoint.  This is because there are move sequences that move, for instance, the cubie marked with a blue arrow to the position of the one marked by the green arrow.  The sequence $FRU$ will do exactly that.  Thus, these two cubies can switch positions and must be in the same sub-type.
+
+\begin{center}
+\includegraphics[scale=.5]{images/professorsCubeMarked.png} 
+\end{center}
+
+We can generalize this idea to larger cubes by noting that the set of edge sub-types is determined by the cubies distance from the midpoint: on an order-5 cube, there are only two distances (0,1).  In general, for a cube of order $n$, there will be $n-2$ edge cubies per edge segment, which are partitioned into $\ceil{\frac{n-2}{2}}$ sub-types.  Note that this formula claims that for any odd integer $n$, cubes of order $n$ and of order $n+1$ have the same number of edge sub-types.  To verify this, look at the cube of order 6 below.  It also has two edge sub-types, denoted by colors, the only difference between it and the order 5 cube is that the ``midpoint'' sub-type in the order 5 cube now gets split into a sort-of left-midpoint and right-midpoint, both of which are interchangeable using a similar sequence to that above.
+
+\begin{center}
+\includegraphics[scale=.5]{images/6x6EdgeSubTypes.png} 
+\end{center}
+
+In general, in going from an odd-order cube to an even-order one order higher, the number of edge sub-types will not change.  The midpoint sub-type will just be ``split'' as seen here, still remaining its own sub-type.  When going from an even-order to an odd-order one higher, though, a new edge sub-type will be introduced, in particular a new ``midpoint'' sub-type entering into the middle of the edges.  Thus, we can decompose the subgroup of edge cubies we discussed in the initial assembly group down to a direct product of $\ceil{\frac{n-2}{2}}$ disjoint subgroups.\\
+
+We now consider the cardinality of each of these subgroups.  It is clear from what we have seen thus far that there will be a discrepancy in cardinality between even- and odd-order cubes that have the same number of sub-types (because a larger cube will always have more edges, even if the number of sub-types is the same).  \\
+
+For even-order cubes, the cardinality is simple.  Every sub-type has exactly two cubies per edge, a left-handed one and a right-handed one that can be interchanged using a move sequence.  This means that every sub-type subgroup will contain exactly $24$ cubies.  So if $n$ is even, then \begin{align*}
+A_n^E \cong \mathbb{Z}_2 \wr \big( \underbrace{\mathfrak{S}_{24} \times \cdots \times \mathfrak{S}_{24}}_{\ceil{\frac{n-2}{2}}} \big)
+\end{align*}
+
+This partitions the $12n - 24$ edges into $\ceil{\frac{n-2}{3}}$ sets, each of 24 elements.  This cardinality checks out because \begin{align*}
+24 \cdot \ceil{\frac{n-2}{2}}
+&= 24 \cdot \frac{n-2}{2} \text{(because n is even)} \\
+&= 12n - 24
+\end{align*}
+
+Odd-order cubes work similarly for all but one edge sub-type.  Every sub-type except the midpoint will still contain $24$ cubies, but the midpoint subtype only has $12$.  Thus, for an odd $n$, we have the decomposition \begin{align*}
+A_n^E \cong 
+\mathbb{Z}_2 \wr 
+\big( \underbrace{\mathfrak{S}_{24} \times \cdots \times \mathfrak{S}_{24}}_{\ceil{\frac{n-2}{2}} - 1} \times \mathfrak{S}_{12} \big)
+\end{align*}
+
+We again verify the cardinality by \begin{align*}
+24 \cdot \big( \ceil{\frac{n-2}{2}} - 1 \big) + 12
+&= 24 \cdot \big(\frac{n-1}{2} - 1 \big) + 12 \\
+&=\frac{24n - 24}{2} - 24 + 12 \\
+&= 12n - 24
+\end{align*}
+
+Thus, we have partitioned the edge cubie set into disjoint subtypes, and reflected this in the group construction by decomposing it into a product of subgroups. \\
+
+Now, we will play a similar game with the center cubies.  Observe that the center cubies on any face of a cube of order $n$ form a square grid, with the number of rows and number of columns both equal to $n-2$.  If $n$ is odd, then there will be exactly one center cubie at the middle of the grid.  This will not be the case for even-order cubes.  We would like to establish a sort of coordinate system on this grid for the purposes of partitioning center cubies.  To each cubie position on a face, we will assign a pair of integers $(x,y)$.  For odd-order cubes, the origin $(0,0)$ will be the cubie at the middle.  For even-order cubes, there will not be an origin, and the four cubies at the middle of the face will be labelled with $(\pm 1, \pm 1)$.  This scheme is illustrated below on cubes of order 5 and 6. \\
+
+\begin{tabular}{|c|c|c|}
+\hline 
+(-1,1) & (0,1) & (1,1) \\ 
+\hline 
+(-1,0) & (0,0) & (1,0) \\ 
+\hline 
+(-1,-1) & (0,-1) & (1,-1) \\ 
+\hline 
+\end{tabular}
+\quad \quad
+\begin{tabular}{|c|c|c|c|}
+\hline 
+(-2,2) & (-1,2) & (1,2) & (2,2) \\ 
+\hline 
+(-2,1) & (-1,1) & (1,1) & (2,1) \\ 
+\hline 
+(-2,-1) & (-1,-1) & (1,-1) & (2,-1) \\ 
+\hline 
+(-2,-2) & (-1,-2) & (1,-2) & (2,-2) \\ 
+\hline 
+\end{tabular} 
+
+With this scheme established, we can form an equivalence relation, the equivalence classes of which will be the center sub-types.  Given two center cubies with positions $(a,b),(x,y)$, we say that $(a,b) \sim (x,y) \Leftrightarrow \{\text{abs}(a), \text{abs}(b)\} = \{\text{abs}(x), \text{abs}(y)\}$.  Note that this is set equality, so $(2,1) \sim (-1,2)$.
+
 \section{The Rubik Group}
 Even without proof, it is not hard to imagine that not all reassemblies of a Cube are reachable by valid moves.  It is common knowledge that taking any one edge of a cube and swapping the stickers on it creates an unsolvable puzzle.  This alone tells us that not all the reassemblies of a cube are in the Rubik's Group, which is formally defined to be the group of configurations that can be reached via legal turns of the Cube.  Equally, this group can be defined as the configurations one can solve the cube from.  To figure out its size, we need to mod the Assembly Group out by the group of actions we can take to change the cube to distinct, disjoint orbits.  We will denote the \textbf{Rubik Group of order n} by $\mathcal{R}_n$. \\
 
@@ -223,7 +295,7 @@ This sequence rotates in-place the FUR and BUR corner cubies, the former being r
 
 The orientation sum is still zero (as expected), as the orientation changes of these two counteract each other.  Note that this sequence can be easily adapted to rotate any two adjacent corners in a similar manner.  In fact, it can be adapted to rotate \textit{any} two corners similarly, but for our purposes we only need to know that any adjacent corners can be likewise rotated. \\
 
-The easiest way to see this is to let the above sequence be denoted as $\hat{S}$, and then conjugate it by some sequence of moves that put the target two cubies in the FUR and BUR positions.  If this sequence consists of simple whole-cube turns, then we will be rotating adjacent corners, and more complex sequences can be used to rotate arbitrary corner-pair.  Let $A$ be the sequence that moves the target two corners into the appropriate locations.  Then the sequence $A\hat{S}A^{-1}$ will perform the desired function.  It positions the target cubies appropriately, rotates them, and then moves them back to where they were.  This is totally non-destructive, as the only cubies affected by $\hat{S}$ are the corners being rotated. \\
+The easiest way to see this is to let the above sequence be denoted as $\hat{S}$, and then conjugate it by some sequence of moves that put the target two cubies in the FUR and BUR positions.  If this sequence consists of simple whole-cube turns, then we will be rotating adjacent corners, and more complex sequences can be used to rotate arbitrary corner-pairs.  Let $A$ be the sequence that moves the target two corners into the appropriate locations.  Then the sequence $A\hat{S}A^{-1}$ will perform the desired function.  It positions the target cubies appropriately, rotates them, and then moves them back to where they were.  This is totally non-destructive, as the only cubies affected by $\hat{S}$ are the corners being rotated. \\
 
 With this knowledge in mind, we can now construct a simple vector space and use some linear algebra to prove our claim.  Let $V$ be the vector space over the field $\mathbb{Z}_3^8$ obtained by mapping an ordered-sequence of the 8 corner cubies to their localized orientations in a given \textit{solvable} cube configuration.   Let $W$ be the vector space over the same field such that the sum of the components is 0.  Our previous proof shows that $V$ is a subspace of $W$, but we do not yet know if it is a proper subspace. \\
 
