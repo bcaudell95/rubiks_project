@@ -177,18 +177,51 @@ Now, we will play a similar game with the center cubies.  Observe that the cente
 
 With this scheme established, we can form an equivalence relation, the equivalence classes of which will be the center sub-types.  Given two center cubies with positions $(a,b),(x,y)$, we say that $(a,b) \sim (x,y) \Leftrightarrow \{\text{abs}(a), \text{abs}(b)\} = \{\text{abs}(x), \text{abs}(y)\}$.  Note that this is set equality, so $(2,1) \sim (-1,2)$.
 
-\section{The Rubik Group}
-Even without proof, it is not hard to imagine that not all reassemblies of a Cube are reachable by valid moves.  It is common knowledge that taking any one edge of a cube and swapping the stickers on it creates an unsolvable puzzle.  This alone tells us that not all the reassemblies of a cube are in the Rubik's Group, which is formally defined to be the group of configurations that can be reached via legal turns of the Cube.  Equally, this group can be defined as the configurations one can solve the cube from.  To figure out its size, we need to mod the Assembly Group out by the group of actions we can take to change the cube to distinct, disjoint orbits.  We will denote the \textbf{Rubik Group of order n} by $\mathcal{R}_n$. \\
+We will see why this strange equivalence relation was chosen momentarily, but assuming it is what we want we will look at the implications.  For a cube of order 7, here is the set of color-coded equivalence classes for center cubies.
 
-Calculating the Rubik Group for arbitrarily-sized cubes is no small endeavor, so we will start with $\mathcal{R}_3$, the standard cube.  It is worth noting that the Assembly Group of order 3 contains about $5.19 \times 10^{20}$ elements, or 519 quintillion.  Quite a large number considering the small size of the standard cube.  So clearly, its Rubik Group will also contain a large number of elements.
+\section{The Rubik Group}
+Even without proof, it is not hard to imagine that not all reassemblies of a Cube are reachable by valid moves.  It is common knowledge that taking any one edge of a cube and swapping the stickers on it creates an unsolvable puzzle.  This alone tells us that not all the reassemblies of a cube are in the Rubik's Group, which is formally defined to be the group of configurations that can be reached via legal turns of the Cube.  Equally, this group can be defined as the configurations one can solve the cube from.  In either case, we denote the set of all such assemblies of a cube of order $n$ by the \textbf{Rubik Group}, $\mathcal{R}_n$.  \\
+
+Calculating the Rubik Group for arbitrarily-sized cubes is no small endeavor, so we will start with $\mathcal{R}_3$, the standard cube.  It is worth noting that the Assembly Group of order 3 contains about $5.19 \times 10^{20}$ elements, or 519 quintillion.  Quite a large number considering the small size of the standard cube.  So clearly, its Rubik Group will also contain a large number of elements. \\
+
+To calculate the size of the Rubik group, we will form a homomorphism $f : \mathcal{A}_3 \rightarrow G$ for some group $G$, the kernel of which will be $\mathcal{R}_n$.  This $G$ will be the direct product of four component groups $G_i, 1 \leq i \leq 4$.  For each $G_i$, there will be an associated homomorphism $f_i : \mathcal{A}_3 \rightarrow G_i$.  From these, we will make \begin{align*}
+f(\sigma) = (f_1(\sigma), f_2(\sigma), f_3(\sigma), f_4(\sigma))
+\end{align*}
+These $f_i$ will be provably orthogonal, meaning that the kernel of $f$ will be exactly the intersection of the kernels of the $f_i$.
 
 \subsection{Permuting the Centers}
 
-In our Assembly group $\mathcal{A}_n$, we allowed ourselves to freely permute the center cubies.  These gave rise to an appropriately-sized symmetric direct factor of that group.  When talking about solvable states, however, this is not allowed.  Because each legal Rubik move leaves all of the center cubies fixed in-place, they never move with respect to each other during a sequence.  This is important in solving because the solver will know which face must eventually end up which color in the solved state.  In calculating the size of the Rubik Group, we use this information to derive the first factor of our index $[\mathcal{R}_3 : \mathcal{A}_3]$. \\
+First, we will form $f_1$ by considering the permutations of the center cubies.  Note that in $\mathcal{A}_3$, we are allowed to freely permute the center cubies.  We do not have this freedom of movement with legal Rubiks moves, because the center cubies are fixed.  We are allowed to turn the cube as a whole, but not alter the relative positions of center cubies.  Thus, only a fraction of assemblies have a center arrangement that are valid.  We also note that turning the puzzle as a whole is a trivial operation with respect to the cube state; doing so doesn't really change the puzzle at all.  Thus, we design $\mathcal{R}_n$ such that all rigid motions of the puzzle (24 in total) correspond to the same element in the group.  This is different from $\mathcal{A}_n$, where we considered them different assemblies. \\
 
-We know that in any solved state, the centers must have a particular positioning with respect to each other.  If one holds the cube with the white center up and the red sticker in front, then the blue sticker must be on the right-hand face.  The other three colors will be determined by the fact that red and orange are opposite, white and yellow are opposite, and blue and green are opposites.  Thus in a reassembly in $\mathcal{A}_3$, there are exactly 24 ``valid'' center cubie configurations.  This number arises because the cube as a whole can be rotated in any of 24 ways. \\
+With this in mind, we will choose an appropriate $G_1$.  Because in $\mathcal{A}_3$, the centers are allowed to permute in a symmetric group (yielding $6!$ permutations), but we want to consider rigid motions as being trivial operations in $\mathcal{R}_3$, we expect $|G_4| = \frac{6!}{24} = 30$.  These correspond to the 30 different ``relative arrangements'' of the center cubies. \\
 
-To take this fact to a factor in our group index, we simply consider how many ways one may ``invalidly'' remove and rearrange the centers on the cube.  This number is the ratio $\frac{|\mathfrak{S}_6|}{24} = 30$.  This is a division rather than a subtraction because we are looking at the \textit{relative} configurations of the stickers rather than their absolute ones.  Each relative configuration leads to 24 absolute ones because the cube can just be rotated as a whole.  Thus, this 30 is our first factor of the index we desire.
+How might we characterize a ``relative arrangement'' of the center cubies?  Well, since rigid motions of the cube are trivial operations, we choose an arbitrary center cubie (say white), and turn the cube so that the white center faces down.  Now, any choice of the center cubie opposite white will be a different relative arrangement, and there are 5 such choices.  Finally, we consider the freedom to arrange the remaining four cubies around the equator of the cube.  Any different 4-cycle of these cubies will yield a different relative arrangement.  How many four-cycles are there?  We may arbitrarily choose a cubie to place in front and rotate the cube to satisfy this.  Then we can freely position the remaining three centers, each permutation of them giving rise to a different 4-cycle. \\
+
+Putting all this together, we have our group structure for $G_1$. \begin{align*}
+G_1 \cong \mathbb{Z}_5 \times \mathfrak{S}_3
+\end{align*}
+and the cardinality is what we expected.   \\
+
+Now, we need to define our homomorphism $f_1$.  Given $\sigma \in \mathcal{A}_3$ as an element of $\mathcal{S}_3$, let $\sigma' \in \mathfrak{S}_6$ be the restriction of $\sigma$ to the center cubie permutation.  Let $\{0,1,2,3,4,5\}$ be an ordering of the center cubies, on which $\sigma'$ can be regarded, and assume that $0,5$ are opposite each other in the solved state.  Let $\alpha \in \mathfrak{S}_6$ be an \textit{orientation-preserving} rigid motion of the center cubies such that $\alpha \sigma' (5) = 5$.  There will be exactly four choices of $\alpha$, but one may be arbitrarily chosen at this point.  This step accounts for rigidly-turning the cube to orient the white face as we did above. \\
+
+Suppose that $\alpha \sigma' (0) = x$ (this will be independent of our choice of $\alpha$ because $\alpha$ is orientation-preserving).  Then we define $X = \{0,1,2,3,4\} \setminus \{x\}$.  This set contains the four center cubies in the equator of the oriented-cube.  For clarity, let $Y = \{\hat{0},\hat{1},\hat{2},\hat{3}\}$ and define a bijection $g : X \rightarrow Y$ such that for $a,b \in X, a' = g(a), b' = g(b)$, $a < b \Leftrightarrow a' < b'$.  This effectively ``renames'' the elements in $X$ so that we can talk about them consistently independent of the value of $x$.  Let $y = g^{-1}(\hat{0})$.  Now, let $\beta \in \mathfrak{S}_6$ be orientation-preserving such that $\beta \alpha \sigma' (5) = 5, \beta \alpha \sigma' (y) = y$.  There will be exactly one such $\beta$ for each choice of $\alpha$, and the resulting $\beta \alpha \sigma'$ will be invariant regardless of our choice of $\alpha$ because both are orientation-preserving.  Finally, let $\theta \in \mathfrak{S}_3$ be the restriction of $\beta \alpha \sigma'$ to $g^{-1}(\{\hat{1}, \hat{2}, \hat{3}\})$.  We know this to be a valid restriction because $\beta \alpha \sigma' (5) = 5 \notin X, \beta \alpha \sigma' (0) = x \notin X, \beta \alpha \sigma' (y) = \hat{0}$. \\
+
+With all this machinery in place, we can now write that \begin{align*}
+f_1(\sigma) = (x, \theta)
+\end{align*}
+We are now tasked with proving this to be a valid homomorphism $\mathcal{A}_3 \rightarrow \mathbb{Z}_5 \times \mathfrak{S}_3$.  First, we need to justify that it is a well-defined function.  To show this, we justify our claim that $\beta \alpha \sigma'$ is well-defined, even though $\alpha \sigma'$ is not.  The composition $\beta \alpha \in \mathfrak{S}_6$ is an orientation-preserving permutation.  When this permutation is composed with $\sigma'$, the result has the properties that $5 \mapsto 5$, and $y \mapsto y$.  This $y$ is well-defined because it is the minimum element other than $f^{-1}(0)$.  We know $\sigma'$ can be oriented with $y$ as a fixed-point because it is in the equator both before and after $\sigma'$.  Thus, there is an orientation-preserving orientation $\beta \alpha$ with both of these conditions.  Furthermore, it is the unique such orientation, because such an orientation $\beta \alpha$ satisfying the given conditions will induce the rest of $\beta \alpha \sigma'$ based on the fact that $\alpha, \beta$ are orientation-preserving. \\
+
+Now, we must prove that it is a homomorphism by verifying $f(\sigma_1 \sigma_2) = f(\sigma_1)f(\sigma_2)$.  Let $\sigma_1$ give rise to $(\alpha_1, \beta_1, x_1, \theta_1)$ in the above procedure, and likewise let $\sigma_2$ give rise to $(\alpha_2, \beta_2, x_2, \theta_2)$.  Now consider $\sigma_1 \sigma_2 \alpha_2 \alpha_1 (0)$. \\
+
+TESTING: \begin{align*}
+\sigma' = (0,1,2) \\
+\alpha = \text{Id} \\
+x = 1 \\
+X = \{0,2,3,4\} \\
+y = 0 \\
+\beta = 
+\sigma' \sigma' = (0,2,1) \\
+\end{align*}
 
 \subsection{Transposing Cubie Positions}
 

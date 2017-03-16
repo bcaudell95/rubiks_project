@@ -8,7 +8,7 @@
 \contentsline {section}{\numberline {2.3}The Faithful Reassembly Group}{6}
 \contentsline {section}{\numberline {2.4}The Rubik Group}{9}
 \contentsline {subsection}{\numberline {2.4.1}Permuting the Centers}{9}
-\contentsline {subsection}{\numberline {2.4.2}Transposing Cubie Positions}{10}
-\contentsline {subsection}{\numberline {2.4.3}Flipping An Edge}{11}
-\contentsline {subsection}{\numberline {2.4.4}Rotating a Lone Corner}{13}
-\contentsline {subsection}{\numberline {2.4.5}Cardinality of the Group}{16}
+\contentsline {subsection}{\numberline {2.4.2}Transposing Cubie Positions}{11}
+\contentsline {subsection}{\numberline {2.4.3}Flipping An Edge}{12}
+\contentsline {subsection}{\numberline {2.4.4}Rotating a Lone Corner}{14}
+\contentsline {subsection}{\numberline {2.4.5}Cardinality of the Group}{17}
