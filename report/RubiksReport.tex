@@ -4,6 +4,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage[usenames, dvipsnames]{color}
 \usepackage{textcomp}
 \usepackage{mathtools}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
@@ -11,6 +12,7 @@
 \title{Combinatorics of Rubik's Cubes}
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\definecolor{darkgreen}{RGB}{0, 128, 0}
 \begin{document}
 \maketitle
 \newpage 
@@ -48,136 +50,141 @@ If we were to take all the stickers off of the plastic cube body and rearrange t
 Clearly, this is an extremely loose upper bound on the number of possible states of a valid Cube.  Let us go one level closer to the answer to our question.
 
 \section{The (Re)assembly Group}
-Instead of moving the stickers around freely, what if we leave the stickers alone and move the pieces around the cube?  By that, I mean taking the cube apart and arbitrarily reassembling the cubies.  In such a reassembly, we will respect each cubie type.  Corners must remain corners, etc.  We will \textit{not}, however, assume respect of different sub-types of cubie.  Consider, for instance, a cube of order 5.  Such a cube has three ``sub-types'' of center cubie: the true centers, the cubies laterally adjacent to each of those, and finally the remaining centers adjacent to those.  Note that we refer to all of these cubies as ``centers'' despite the fact that most of them are not truly in the center of a face (this is where standard cubing terminology breaks down somewhat).  In a reassembly, we will not assume that true-centers remain true-centers, etc.  This distinction will be accounted for later.  The number of possible reassemblies is certainly smaller than $|\mathcal{S}_n|$, but what is its size?  The calculation is slightly harder, but still not difficult. \\
+Permuting the stickers around is not really the group action we care about.  We would much rather consider actions on the cubies themselves, since those are the pieces being moved in legal rubiks moves.  Let us consider the group formed by arbitrarily taking the cube apart (leaving the stickers alone) and reassembling the cubies.  This group on a cube of order $n$ will be known as the \textbf{(Re)assembly group} of order $n$, denoted $\mathcal{R}_n$.  There will be a number of restrictions imposed on us by the physical nature of the cube, and we will account for these one at a time.
 
-Given a cube of order $n$, how many of each type of cubie are there?  Well, there will always be 8 corners.  There will always be 12 ``edge segments'' on the cube, each of which will contain $n-2$ pieces, so that gives us $12n - 24$ edge cubies.  For the center cubies (which, again, need not actually be at the centers of faces), there are 6 faces' worth, each having $(n-2)^2$.  So some algebra gives us that there are a total of $6(n^2  - 4n + 4) = 6n^2 - 24n + 24$ total center cubies. \\
+\subsection{Cubie Type Restrictions}
 
-So we know that the number of reassemblies will have as factors the possible permutations of these three types of cubies.  We also need to consider the fact that the edges and corners have multiple orientations per piece, though.  Each edge has 2 orientations, and each corner has 3.  From this information, we can calculate the number of possible cube reassemblies.  We will call this algrebraic group the \textbf{Assembly/Reassembly Group of order n}, and denote it by $\mathcal{A}_n$.  While it is not immediately obvious that a group structure is present, this will be clear by the end of the section.  This group is clearly a subgroup of $\mathcal{S}_n$ as any reassembly can be thought of as a rearrangement of stickers, but the converse statement is not true as the sticker group is far more general.  We can calculate the number of reassemblies by \begin{align*}
-|\mathcal{A}_n| &= 8! \cdot 3^8 \cdot (12n-24)! \cdot 2^{12n-24} \cdot (6n^2 - 24n + 24)!
-\end{align*}
-This calculation arises just from considering the number of each piece and our freedom to arrange them.  In group theory, we can use this same information to arrive at a decomposition for $\mathcal{A}_n$ into subgroups for each piece type.  Since the arrangements of center, edge, and corner cubies are all independent, we can write a direct product
-\begin{align*}
-\mathcal{A}_n \cong
-\mathcal{A}_n^C \times
-\mathcal{A}_n^E \times
-\mathcal{A}_n^R
-\end{align*}
-where the terms are the subgroups concerning assemblies of the centers, edges, and corners, respectively.  Note that the notation for these subgroups will not be used often beyond this section; it is being used here purely to derive a simpler formula for $\mathcal{A}_n$.  These subgroups are easier to work with. \\
+The reassembly group structure with the fewest restrictions will only respect the cubie types.  Corners must remain corners, etc.  Thus, we will consider the number of each cubie type and our freedom to position and orient them.  Note that the reassemblies of each cubie type are independent of each other, thus we can consider them independently and then form a direct product group. \\
 
-The subgroup of permutations of the centers is just a symmetric group of the appropriate size.  Since we don't need to worry about orientations of these stickers (as rotating a sticker by itself on a Cube has no significance), this group isomorphism is just a simple symmetric group. $ \mathcal{A}_n^C \cong \mathfrak{S}_{6n^2 - 24n + 24}$. \\
-
-The subgroup of edges is slightly more complicated, but still not hard.  We have $12n-24$ edges that can be positioned freely, giving a symmetric group.  On top of that, we can also orient each edge in one of two ways.  Thus, each edge orientation is an element of $\mathbb{Z}_2$.  We can express the interaction of these two groups using either a semidirect product or wreath product.  The wreath product $A \wr \mathfrak{S}_n$ can be informally described as ``let each letter in the symmetric group be itself an element of group $A$''.  In this specific case, each item being permuted (an edge) also contains an orientation, which can be thought of as an element of $\mathbb{Z}_2$.  It is not immediately clear exactly what the elements of $\mathbb{Z}_2, (\hat{0}, \hat{1}),$ mean in terms of an orientation of an edge cubie, but we could (and later will) define an orientation scheme that resolves this.  For now, we just need to recognize that each edge cubie can be in one of two orientations, to be defined later.
-\begin{align*}
-\mathcal{A}_n^E 
-&\cong\mathbb{Z}_2^{12n-24} \rtimes \mathfrak{S}_{12n-24} \\
-&= \mathbb{Z}_2 \wr \mathfrak{S}_{12n-24}
+Regardless of the cube size, there will always be exactly eight corner pieces.  These pieces can be freely permuted, and each one can be oriented in one of three orientations.  This relationship can be most aptly described as a wreath product \begin{align*}
+C_3 \wr \mathfrak{S}_8
 \end{align*}
 
-Finally, we have the corners.  As with the edges, we can freely position and orient these cubies.  There are exactly 8 corner cubies for any cube size, and they can all be ordered in one of three orientations.  Just as in the edge subgroup, we can express this relationship most succinctly using a wreath product.  Again, we will not concern ourselves with the exact meaning of the orientations coming from $\mathbb{Z}_3$, but we will formally define this later.  So we have \begin{align*}
-\mathcal{A}_n^R
-&\cong\mathbb{Z}_3^8 \rtimes \mathfrak{S}_8 \\
-&= \mathbb{Z}_3 \wr \mathfrak{S}_8
+A wreath product of the form $G \wr \mathfrak{S}_n$ can be thought of as an $n$ by $n$ matrix with exactly one non-zero element in each row and column, with those nonzero elements coming from $G$.  This is similar to a permutation matrix (stemming from the $\mathfrak{S}_n$ component), with the additional freedom that each element can be chosen from $G$.  This suits our needs as we are permutating the 8 corner cubies and orienting each in one of 3 cyclic orientations. \\
+
+The edge cubies work similarly, but the number of each is a function of the cube size.  For a cube of size $n$, there will be 12 edge ``segments'' and $n-2$ cubies for each.  Each edge cubie can be oriented in one of two orientations.  Thus, our group structure for the edge assembly is \begin{align*}
+C_2 \wr \mathfrak{S}_{12(n-2)}
+\end{align*} \\
+
+Finally, we consider the center cubies.  Here, we will actually impose one small further restriction.  For reasons that we will see later, we will only consider \textbf{odd} sized cubes, and we will not allow reassembly of the ``true-centers''.  We know that legal rubiks moves preserve the positions of these true-centers, so we can simplify our problem by not allowing them to be moved in the reassembly group.  The restriction to odd-sized cubes is thus needed because even-order cubes don't have true-centers. \\
+
+Given a cube of odd size $n$, each of the six faces will have $(n-2)^2 -1$ center cubies, not counting the true centers.  Assuming all such centers are distinguishable, our center reassembly group has the form \begin{align*}
+\mathfrak{S}_{6(n-2)^2 - 6}
 \end{align*}
 
-With all this, we can write the Assembly group as a direct product of known components:
-\begin{align*}
-\mathcal{A}_n \cong
-\mathfrak{S}_{6n^2 - 24n + 24} \times
-(\mathbb{Z}_2 \wr \mathfrak{S}_{12n-24}) \times
-(\mathbb{Z}_3 \wr \mathfrak{S}_8)
+Thus, the group structure for this first version of the reassembly group is\begin{align*}
+\mathcal{R}_n = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12(n-2)}) \times \mathfrak{S}_{6(n-2)^2 - 6}
 \end{align*}
-and the cardinality checks out.  There is a very important note about this reassembly group.  There are a large number of ``duplicate'' assemblies because of how freely we are allowed to permute and arrange cubies.  For any assembly, there will be exactly 23 other elements of $\mathcal{A}_n$ that represent the same assembly being rotated as a whole cube.  Even the ``solved'' assembly will have duplicates that correspond to the different ways the solver can hold the cube.  We will address this important caveat shortly, but this assembly group is an excellent starting place for talking about the number of reachable states in the Rubik's Cube.\\
 
-Note that we have decomposed the supposed-group $\mathcal{A}_n$ into a direct product of three subgroups (two of which are wreath products).  Each of these three are clearly groups.  The first is a standard symmetric group, and the latter are well-defined wreath product groups.  Thus, their direct product $\mathcal{A}_n$ is also a group, with its group operation being well-defined by direct product.  Specifically, group elements can be thought of as bijections on the set \begin{align*}
-[6n^2 -24n + 24] \times \mathbb{Z}_2^{12n - 24} \times [12n - 24] \times \mathbb{Z}_8^{8} \times [8]
-\end{align*}
-with group multiplication being composition of such bijections.  In terms of cubies, the identity element of this group is the solved state.  As mentioned before, there are at least 24 solved states (I say at least for reasons that will be discussed much later).  We will handle these duplicates shortly.  \\
-
-We will now further refine this assembly group to get one step closer to our goal.
-
-\section{The Faithful Reassembly Group}
-We mentioned in the previous section that the assembly group does not concern itself with sub-types of cubies.  While this blindness simplifies its calculation, it will lose most of its usefulness in larger cubes (order-5 and above).  As such, we need to introduce the notion of a \textbf{faithful} reassembly.  Such a reassembly respects the sub-types of cubies permuted.  An edge piece adjacent to a corner will remain as such after the assembly is applied, for instance.  This idea brings us to a subgroup of $\mathcal{A}_n$ known as the \textbf{Faithful Assembly Group}, denoted $\mathcal{A}_n^f$.  \\
-
-This image clarifies what is meant by ``sub-types'' of cubie.  The letter denotes the type ((C)enter, (E)dge, or co(R)ner), and the number (if one is given) denotes the sub-type.  From looking at the image and thinking about turns on the cube, it is not hard to see that legal moves preserve sub-types.  In the case of face turns, cubies cycle amongst their subtype.  In slice moves, the same thing happens, but may not be quite as immediately obvious.
+\subsection{Cubie Sub-Type Restrictions}
+The next restriction to apply to this group involves so-called cubie ``sub-types''.  These don't exist on the standard order-3 cube, but cubes of order 5 and above have multiple sub-types of edge and center cubies.  The diagram below illustrates what I mean.
 
 \begin{center}
 \includegraphics[scale=.5]{images/professorsCubeLabelled.png} 
 \end{center}
 
-The set of all faithful reassemblies is clearly a subset of the assemblies, and the set also contains the solved state because that is a faithful reassembly.  Composing two faithful reassemblies will still yield a faithful reassembly, thus this set is closed under composition.  All of the other group properties are transferred from the parent group, thus the faithful reassemblies are a subgroup of $\mathcal{A}_n$. \\
+As with any sized cube, the corners of an order-5 cube can be freely permuted and oriented because they all have the same shape inside the cube.  The other two piece types, however, have different internal shapes depending on where exactly in the puzzle they go.  An edge cubie on the midpoint (labelled E1) will have a different shape than one labelled E2, etc.  Because of this, we now need to partition the edge and center cubie subgroups based on sub-types, as a reassembly cannot intermingle cubies of different sub-types.  Their different internal shapes prohibit that. \\
 
-It is important to note that for cubes of order-3 (the standard cube), the assemblies and faithful assemblies are the exact same group.  There is only one sub-type for each type of cubie, so every assembly is inherently faithful.  When we finally calculate the number of possible configurations for the standard cube, this faithfulness will not play a role.  We are merely establishing this constraint for larger cubes. \\
+For the edges, the sub-types are determined by distance from the midpoint of the edge.  For an odd-order cube (which we have restricted ourselves to) there will be always be a sub-type of midpoint-edges containing 12 cubies total.  All other edge sub-types will contain 24 cubies.  The number of those edge sub-types for a cube of order $n$ is $\floor{\frac{n-2}{2}}$.  Thus, we decompose our edge reassembly subgroup from before down to \begin{align*}
+(C_2 \wr \mathfrak{S}_{12}) \times \Big( \bigotimes_{i=1}^{\floor{\frac{n-2}{2}}} (C_2 \wr \mathfrak{S}_{24}) \Big)
+&= (C_2 \wr \mathfrak{S}_{12}) \times \Big( \bigotimes_{i=1}^{\frac{n-3}{2}} (C_2 \wr \mathfrak{S}_{24}) \Big)
+\end{align*}
 
-To calculate the cardinality of this group, we need to know the number of sub-types.  The corners are trivial, as there are exactly 8 corners for any cube size.  Note that any corner can take on any of the 8 positions using legal moves, meaning that they comprise one sub-type.  Thus, the corner subgroup of the faithful assembly group is the same as the related subgroup in the original assembly group. \\
+where the $\bigotimes$ denotes repeated direct product.  The last step removes the floor operator by noting that $n$ is odd. \\
 
-Next, we will consider the edge cubies.  As shown above in the 5x5 cubes, there are two sub-types of edge cubie: those at the midpoints of edges and those adjacent to midpoints.  Again, observe that there is no legal move to turn a midpoint edge cubie into the other sub-type.  Note that the edge cubies adjacent to the midpoints are one sub-type, and we do not distinguish between those on the left and right of the midpoint.  This is because there are move sequences that move, for instance, the cubie marked with a blue arrow to the position of the one marked by the green arrow.  The sequence $FRU$ will do exactly that.  Thus, these two cubies can switch positions and must be in the same sub-type.
+The center cubies will work similarly, albeit with a little more complexity in the number of sub-types.  Consider this matrix representing the centers of a face on an order-9 cube.  The labels are the center sub-type for each cubie.  Remember that we are ignoring the true-center (labelled by a 0) because reassemblies cannot premute them.
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline 
+7 & 8 & 9 & 10 & 11 & 12 & 7 \\ 
+\hline 
+• & 3 & 4 & 5 & 6 & 3 & • \\ 
+\hline 
+• & • & 1 & 2 & 1 & • & • \\ 
+\hline 
+• & • & • & 0 & • & • & • \\ 
+\hline 
+• & • & • & • & • & • & • \\ 
+\hline 
+• & • & • & • & • & • & • \\ 
+\hline 
+• & • & • & • & • & • & • \\ 
+\hline 
+\end{tabular} 
+\end{center}
+
+Note that any cubies that lie on a diagonal from the true-center are partitioned into sub-types based on their diagonal-distance from the center.  All other cubies that lie in this labelled triangle lie in distinct sub-types.  It might be tempting to think that the cubies labelled 4 and 6 are in the same sub-type and could be swapped in a reassembly, but this turns out to not be the case.  The pieces themselves are mirror images of each other, and thus cannot be swapped in an assembly. \\
+
+We now trim-down this diagram to ignore the true-centers, and to label only one representative from each of the ``diagonal'' sub-types.  We will also color the remaining labels to make counting easier soon.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline 
+• & \textcolor{red}{8} & \textcolor{red}{9} & \textcolor{blue}{10} & \textcolor{darkgreen}{11} & \textcolor{darkgreen}{12} & \textcolor{darkgreen}{7} \\ 
+\hline 
+• & • & \textcolor{red}{4} & \textcolor{blue}{5} & \textcolor{darkgreen}{6} & \textcolor{darkgreen}{3} & • \\ 
+\hline 
+• & • & • & \textcolor{blue}{2} & \textcolor{darkgreen}{1} & • & • \\ 
+\hline 
+• & • & • & • & • & • & • \\ 
+\hline 
+• & • & • & • & • & • & • \\ 
+\hline 
+• & • & • & • & • & • & • \\ 
+\hline 
+• & • & • & • & • & • & • \\ 
+\hline 
+\end{tabular} 
+\end{center}
+
+This matrix now contains exactly one representative from every center sub-type for this order-9 cube.  To verify this, imagine rotating the matrix by 90 degrees three times.  Each entry in the matrix (except for the true-center) will be assigned a label exactly once, thus a valid partition will emerge.  Note that the partitions will all be equally-sized (4 cubies per face per sub-type).  Thus, we need only to derive a formula for counting the number of sub-types for an arbitrarily-sized cube. \\
+
+The coloring makes a counting system rather straightforward.  For a cube of size $n$ (still assuming odd), there will be $\sum_{i=1}^{\floor{\frac{n-4}{2}}}i$ elements in the red triangle.  Remember that the above matrix was formed from a cube of order 9, not 7.  The blue strip will contain $\floor{\frac{n-2}{2}}$ cubies.  Finally, the green triangle will contain $\sum_{i=1}^{\floor{\frac{n-2}{2}}}i$ cubies.  Using summation formulas and adding these up yields the number of center sub-types for a cube of order $n$ as \begin{align*}
+\sum_{i=1}^{\floor{\frac{n-4}{2}}}i + \floor{\frac{n-2}{2}} + \sum_{i=1}^{\floor{\frac{n-2}{2}}}i
+&= \frac{\Big(\floor{\frac{n-4}{2}}\Big)\Big(\floor{\frac{n-4}{2}} + 1\Big)}{2} 
++ \floor{\frac{n-2}{2}} + 
+\frac{\Big(\floor{\frac{n-2}{2}}\Big)\Big(\floor{\frac{n-2}{2}} + 1\Big)}{2} \\
+&=\frac{\Big(\frac{n-5}{2}\Big)\Big(\frac{n-5}{2} + 1\Big)}{2} 
++ \frac{n-3}{2} + 
+\frac{\Big(\frac{n-3}{2}\Big)\Big(\frac{n-3}{2} + 1\Big)}{2} \\
+&= \frac{\frac{(n-5)^2}{4} + \frac{n-5}{2} + n - 3 + \frac{(n-3)^2}{4} + \frac{n-3}{2}}{2} \\
+&= \frac{(n-5)^2 + 2(n-5) + 4(n-3) + (n-3)^2 + 2(n-3)}{8} \\
+&= \frac{n^2 - 10n + 25 + 2n - 10 + 4n - 12 + n^2 - 6n + 9 + 2n - 6}{8} \\
+&= \frac{2n^2 - 8n + 6}{8} \\
+&= \frac{n^2 - 4n + 3}{4} \\
+&= \frac{(n-3)(n-1)}{4}
+\end{align*}
+
+It is worth providing a quick justification that this value will always be an integer.  For $n=3$ there are no center sub-types (as we are disregarding the true-centers), and our formula yields 0.  For any odd number $n \geq 5$, consider the values of $n-3,n-1$.  These will be consecutive even numbers.  As such, one of them must be divisible by 4.  From this, we know that the formula presented above will always yield an integer value for odd $n \geq 5$. \\
+
+As we've shown, each center sub-type formed in this way will contain exactly 24 cubies (four per face).  Thus, we can write our center reassembly subgroup with this constraint as
+
+\begin{align*}
+\bigotimes_{i=1}^{\frac{(n-3)(n-1)}{4}}\mathfrak{S}_{24}
+\end{align*}
+
+We can now write the reassembly group of order n as \begin{align*}
+\mathcal{R}_n = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12}) \times \Big( \bigotimes_{i=1}^{\frac{n-3}{2}} (C_2 \wr \mathfrak{S}_{24}) \Big) \times \Big( \bigotimes_{i=1}^{\frac{(n-3)(n-1)}{4}}\mathfrak{S}_{24} \Big)
+\end{align*}
+
+\subsection{Edge Sub-Type Orientation Restriction}
+The last observation to note has to do with the orientation of edge cubies.  For any edge cubie that is not at the midpoint of the edge, the piece structure actually limits the orientation it can be in.  Consider a pair of edge cubies adjacent to the midpoint of an order-5 cube, as shown here.
 
 \begin{center}
 \includegraphics[scale=.5]{images/professorsCubeMarked.png} 
 \end{center}
 
-We can generalize this idea to larger cubes by noting that the set of edge sub-types is determined by the cubies distance from the midpoint: on an order-5 cube, there are only two distances (0,1).  In general, for a cube of order $n$, there will be $n-2$ edge cubies per edge segment, which are partitioned into $\ceil{\frac{n-2}{2}}$ sub-types.  Note that this formula claims that for any odd integer $n$, cubes of order $n$ and of order $n+1$ have the same number of edge sub-types.  To verify this, look at the cube of order 6 below.  It also has two edge sub-types, denoted by colors, the only difference between it and the order 5 cube is that the ``midpoint'' sub-type in the order 5 cube now gets split into a sort-of left-midpoint and right-midpoint, both of which are interchangeable using a similar sequence to that above.
+The internal shapes of these pieces are actually mirror images of each other.  Thus, during a reassembly, one can swap the positions of these two.  However, the pieces are asymmetric, meaning that one cannot take the cubie marked with a blue arrow and flip its orientation in-place.  The internal shape of the piece will prevent that.  In fact, for any edge cubie other than one in the midpoint sub-type, the position it is in actually determines the orientation it must be in.  The edge cubie marked with a green arrow cannot change orientation in-place, nor can it be moved to the blue-arrow location while keeping the while sticker pointing forward.  The position wholly determines the orientation of these pieces. \\
 
-\begin{center}
-\includegraphics[scale=.5]{images/6x6EdgeSubTypes.png} 
-\end{center}
+This can be easily reflected in the group structure by removing the wreath product from the edge cubie sub-types (other than the midpoint sub-type).  This means that our final reassembly group of order n has the group structure
 
-In general, in going from an odd-order cube to an even-order one order higher, the number of edge sub-types will not change.  The midpoint sub-type will just be ``split'' as seen here, still remaining its own sub-type.  When going from an even-order to an odd-order one higher, though, a new edge sub-type will be introduced, in particular a new ``midpoint'' sub-type entering into the middle of the edges.  Thus, we can decompose the subgroup of edge cubies we discussed in the initial assembly group down to a direct product of $\ceil{\frac{n-2}{2}}$ disjoint subgroups.\\
-
-We now consider the cardinality of each of these subgroups.  It is clear from what we have seen thus far that there will be a discrepancy in cardinality between even- and odd-order cubes that have the same number of sub-types (because a larger cube will always have more edges, even if the number of sub-types is the same).  \\
-
-For even-order cubes, the cardinality is simple.  Every sub-type has exactly two cubies per edge, a left-handed one and a right-handed one that can be interchanged using a move sequence.  This means that every sub-type subgroup will contain exactly $24$ cubies.  So if $n$ is even, then \begin{align*}
-A_n^E \cong \mathbb{Z}_2 \wr \big( \underbrace{\mathfrak{S}_{24} \times \cdots \times \mathfrak{S}_{24}}_{\ceil{\frac{n-2}{2}}} \big)
+\begin{align*}
+\mathcal{R}_n = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12}) \times \Big( \bigotimes_{i=1}^{\frac{n-3}{2}}\mathfrak{S}_{24} \Big) \times \Big( \bigotimes_{i=1}^{\frac{(n-3)(n-1)}{4}}\mathfrak{S}_{24} \Big)
 \end{align*}
 
-This partitions the $12n - 24$ edges into $\ceil{\frac{n-2}{3}}$ sets, each of 24 elements.  This cardinality checks out because \begin{align*}
-24 \cdot \ceil{\frac{n-2}{2}}
-&= 24 \cdot \frac{n-2}{2} \text{(because n is even)} \\
-&= 12n - 24
-\end{align*}
+Broadly speaking, the first factor subgroup is the positions and orientations of the corner cubies.  The second is the positions and orientations of the \textit{midpoint} edge cubies.  The third is a sequence of subgroups relating to the positions of each non-midpoint edge sub-type.  Again, these positions wholly determine the orientations, which is why they are purely symmetric.  The final subgroup is the positions of each center sub-type (remember that the true-centers are ignored).  Orientation is not a factor in the center cubies, so position is the only concern. \\
 
-Odd-order cubes work similarly for all but one edge sub-type.  Every sub-type except the midpoint will still contain $24$ cubies, but the midpoint subtype only has $12$.  Thus, for an odd $n$, we have the decomposition \begin{align*}
-A_n^E \cong 
-\mathbb{Z}_2 \wr 
-\big( \underbrace{\mathfrak{S}_{24} \times \cdots \times \mathfrak{S}_{24}}_{\ceil{\frac{n-2}{2}} - 1} \times \mathfrak{S}_{12} \big)
-\end{align*}
-
-We again verify the cardinality by \begin{align*}
-24 \cdot \big( \ceil{\frac{n-2}{2}} - 1 \big) + 12
-&= 24 \cdot \big(\frac{n-1}{2} - 1 \big) + 12 \\
-&=\frac{24n - 24}{2} - 24 + 12 \\
-&= 12n - 24
-\end{align*}
-
-Thus, we have partitioned the edge cubie set into disjoint subtypes, and reflected this in the group construction by decomposing it into a product of subgroups. \\
-
-Now, we will play a similar game with the center cubies.  Observe that the center cubies on any face of a cube of order $n$ form a square grid, with the number of rows and number of columns both equal to $n-2$.  If $n$ is odd, then there will be exactly one center cubie at the middle of the grid.  This will not be the case for even-order cubes.  We would like to establish a sort of coordinate system on this grid for the purposes of partitioning center cubies.  To each cubie position on a face, we will assign a pair of integers $(x,y)$.  For odd-order cubes, the origin $(0,0)$ will be the cubie at the middle.  For even-order cubes, there will not be an origin, and the four cubies at the middle of the face will be labelled with $(\pm 1, \pm 1)$.  This scheme is illustrated below on cubes of order 5 and 6. \\
-
-\begin{tabular}{|c|c|c|}
-\hline 
-(-1,1) & (0,1) & (1,1) \\ 
-\hline 
-(-1,0) & (0,0) & (1,0) \\ 
-\hline 
-(-1,-1) & (0,-1) & (1,-1) \\ 
-\hline 
-\end{tabular}
-\quad \quad
-\begin{tabular}{|c|c|c|c|}
-\hline 
-(-2,2) & (-1,2) & (1,2) & (2,2) \\ 
-\hline 
-(-2,1) & (-1,1) & (1,1) & (2,1) \\ 
-\hline 
-(-2,-1) & (-1,-1) & (1,-1) & (2,-1) \\ 
-\hline 
-(-2,-2) & (-1,-2) & (1,-2) & (2,-2) \\ 
-\hline 
-\end{tabular} 
-
-With this scheme established, we can form an equivalence relation, the equivalence classes of which will be the center sub-types.  Given two center cubies with positions $(a,b),(x,y)$, we say that $(a,b) \sim (x,y) \Leftrightarrow \{\text{abs}(a), \text{abs}(b)\} = \{\text{abs}(x), \text{abs}(y)\}$.  Note that this is set equality, so $(2,1) \sim (-1,2)$.
-
-We will see why this strange equivalence relation was chosen momentarily, but assuming it is what we want we will look at the implications.  For a cube of order 7, here is the set of color-coded equivalence classes for center cubies.
+It is important to note that these last two factors are not present in the $n=3$ case.  The standard cube has \textit{only} midpoint edges and \textit{only} true-centers.  Thus, $\mathcal{R}_3 = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12})$, which is the same as the formula we derived before we applied these restrictions.
 
 \section{The Rubik Group}
 Even without proof, it is not hard to imagine that not all reassemblies of a Cube are reachable by valid moves.  It is common knowledge that taking any one edge of a cube and swapping the stickers on it creates an unsolvable puzzle.  This alone tells us that not all the reassemblies of a cube are in the Rubik's Group, which is formally defined to be the group of configurations that can be reached via legal turns of the Cube.  Equally, this group can be defined as the configurations one can solve the cube from.  In either case, we denote the set of all such assemblies of a cube of order $n$ by the \textbf{Rubik Group}, $\mathcal{R}_n$.  \\
