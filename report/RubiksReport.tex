@@ -4,6 +4,7 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{amsthm}
 \usepackage[usenames, dvipsnames]{color}
 \usepackage{textcomp}
 \usepackage{mathtools}
@@ -13,6 +14,7 @@
 \DeclarePairedDelimiter\ceil{\lceil}{\rceil}
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 \definecolor{darkgreen}{RGB}{0, 128, 0}
+\newtheorem{lemma}{Lemma}
 \begin{document}
 \maketitle
 \newpage 
@@ -25,7 +27,7 @@ The standard 3x3 Rubik's Cube has six colors, one for each face.  The typical co
 
 Each of the cube's six faces can be independently rotated by multiples of 90\textdegree.  When held in a particular position, the six faces of the cube are generally regarded as front, back, left, right, up, and down.  These terms give rise to the standard move notation of F,B,L,R,U,D to denote clockwise rotations by 90\textdegree of each face.\\
 
-These six moves are enough to scramble and solve the puzzle in any possible way, though it is convenient to define addition moves for clarity.  An apostrophe is used to denote a counter-clockwise move, so F' is a counter-clockwise rotation about the front face.  Adding a superscript 2 denotes performing a move twice, i.e. a 180\textdegree rotation, so $B^2$ is a 180\textdegree rotation of the back face.  This is regarded as a half-turn.  Note that by symmetry of the square faces, performing a clockwise move twice is equivalent to performing the counter-clockwise version twice, i.e. $L^2 \cong (L')^2$, so we just use the first notation.  Also note that repeating a clockwise-move (quarter-turn) three times is equivalent to a single counter-clockwise move, and vise versa.\\
+These six moves are enough to scramble and solve the puzzle in any possible way, though it is convenient to define additional moves for clarity.  An apostrophe is used to denote a counter-clockwise move, so F' is a counter-clockwise rotation about the front face.  Adding a superscript 2 denotes performing a move twice, i.e. a 180\textdegree rotation, so $B^2$ is a 180\textdegree rotation of the back face.  This is regarded as a half-turn.  Note that by symmetry of the square faces, performing a clockwise move twice is equivalent to performing the counter-clockwise version twice, i.e. $L^2 \cong (L')^2$, so we just use the first notation.  Also note that repeating a clockwise-move (quarter-turn) three times is equivalent to a single counter-clockwise move, and vise versa.\\
 
 Occasionally, it is useful to talk about \textbf{slice} moves.  These are moves obtained by rotating any of the three central "slices" of the cube.  In the standard 3x3 cube, these are denoted by lowercase variants of the same 6 letters, with apostrophes and exponents having the same meaning as before.  Note that if we talk about a slice relative to a particular face, that face still defines the direction of the rotation, but we actually rotate the cubies one layer "deeper" into the cube.  These slice moves are isomorphic at the cube level to performing two face turns on opposite faces, i.e. the slice move $r \cong R'L$ (rotating the right face counter-clockwise and the left face clockwise).  Although the two move sequences are isomorphic, they leave the cube as a whole oriented differently, hence why it is useful to define them even if they are rarely used in the 3x3 cube.  \\
 
@@ -50,7 +52,7 @@ If we were to take all the stickers off of the plastic cube body and rearrange t
 Clearly, this is an extremely loose upper bound on the number of possible states of a valid Cube.  Let us go one level closer to the answer to our question.
 
 \section{The (Re)assembly Group}
-Permuting the stickers around is not really the group action we care about.  We would much rather consider actions on the cubies themselves, since those are the pieces being moved in legal rubiks moves.  Let us consider the group formed by arbitrarily taking the cube apart (leaving the stickers alone) and reassembling the cubies.  This group on a cube of order $n$ will be known as the \textbf{(Re)assembly group} of order $n$, denoted $\mathcal{R}_n$.  There will be a number of restrictions imposed on us by the physical nature of the cube, and we will account for these one at a time.
+Permuting the stickers around is not really the group action we care about.  We would much rather consider actions on the cubies themselves, since those are the pieces being moved in legal rubiks moves.  Let us consider the group formed by arbitrarily taking the cube apart (leaving the stickers alone) and reassembling the cubies.  This group on a cube of order $n$ will be known as the \textbf{(Re)assembly group} of order $n$, denoted $\mathcal{A}_n$.  There will be a number of restrictions imposed on us by the physical nature of the cube, and we will account for these one at a time.
 
 \subsection{Cubie Type Restrictions}
 
@@ -73,7 +75,7 @@ Given a cube of odd size $n$, each of the six faces will have $(n-2)^2 -1$ cente
 \end{align*}
 
 Thus, the group structure for this first version of the reassembly group is\begin{align*}
-\mathcal{R}_n = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12(n-2)}) \times \mathfrak{S}_{6(n-2)^2 - 6}
+\mathcal{A}_n = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12(n-2)}) \times \mathfrak{S}_{6(n-2)^2 - 6}
 \end{align*}
 
 \subsection{Cubie Sub-Type Restrictions}
@@ -164,7 +166,7 @@ As we've shown, each center sub-type formed in this way will contain exactly 24 
 \end{align*}
 
 We can now write the reassembly group of order n as \begin{align*}
-\mathcal{R}_n = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12}) \times \Big( \bigotimes_{i=1}^{\frac{n-3}{2}} (C_2 \wr \mathfrak{S}_{24}) \Big) \times \Big( \bigotimes_{i=1}^{\frac{(n-3)(n-1)}{4}}\mathfrak{S}_{24} \Big)
+\mathcal{A}_n = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12}) \times \Big( \bigotimes_{i=1}^{\frac{n-3}{2}} (C_2 \wr \mathfrak{S}_{24}) \Big) \times \Big( \bigotimes_{i=1}^{\frac{(n-3)(n-1)}{4}}\mathfrak{S}_{24} \Big)
 \end{align*}
 
 \subsection{Edge Sub-Type Orientation Restriction}
@@ -179,197 +181,225 @@ The internal shapes of these pieces are actually mirror images of each other.  T
 This can be easily reflected in the group structure by removing the wreath product from the edge cubie sub-types (other than the midpoint sub-type).  This means that our final reassembly group of order n has the group structure
 
 \begin{align*}
-\mathcal{R}_n = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12}) \times \Big( \bigotimes_{i=1}^{\frac{n-3}{2}}\mathfrak{S}_{24} \Big) \times \Big( \bigotimes_{i=1}^{\frac{(n-3)(n-1)}{4}}\mathfrak{S}_{24} \Big)
+\mathcal{A}_n = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12}) \times \Big( \bigotimes_{i=1}^{\frac{n-3}{2}}\mathfrak{S}_{24} \Big) \times \Big( \bigotimes_{i=1}^{\frac{(n-3)(n-1)}{4}}\mathfrak{S}_{24} \Big)
 \end{align*}
 
 Broadly speaking, the first factor subgroup is the positions and orientations of the corner cubies.  The second is the positions and orientations of the \textit{midpoint} edge cubies.  The third is a sequence of subgroups relating to the positions of each non-midpoint edge sub-type.  Again, these positions wholly determine the orientations, which is why they are purely symmetric.  The final subgroup is the positions of each center sub-type (remember that the true-centers are ignored).  Orientation is not a factor in the center cubies, so position is the only concern. \\
 
-It is important to note that these last two factors are not present in the $n=3$ case.  The standard cube has \textit{only} midpoint edges and \textit{only} true-centers.  Thus, $\mathcal{R}_3 = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12})$, which is the same as the formula we derived before we applied these restrictions.
+It is important to note that these last two factors are not present in the $n=3$ case.  The standard cube has \textit{only} midpoint edges and \textit{only} true-centers.  Thus, $\mathcal{A}_3 = (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12})$, which is the same as the formula we derived before we applied these restrictions.
 
 \section{The Rubik Group}
-Even without proof, it is not hard to imagine that not all reassemblies of a Cube are reachable by valid moves.  It is common knowledge that taking any one edge of a cube and swapping the stickers on it creates an unsolvable puzzle.  This alone tells us that not all the reassemblies of a cube are in the Rubik's Group, which is formally defined to be the group of configurations that can be reached via legal turns of the Cube.  Equally, this group can be defined as the configurations one can solve the cube from.  In either case, we denote the set of all such assemblies of a cube of order $n$ by the \textbf{Rubik Group}, $\mathcal{R}_n$.  \\
+Even without proof, it is not hard to imagine that not all reassemblies of a Cube are reachable by valid moves.  It is common knowledge amongst solvers that taking any one edge of a cube and swapping the stickers on it creates an unsolvable puzzle.  This alone tells us that not all the reassemblies of a cube are in the Rubik's Group, which is formally defined to be the group of configurations that can be reached via legal turns of the Cube.  Equally, this group can be defined as the configurations one can solve the cube from.  In either case, we denote the set of all such assemblies of a cube of order $n$ by the \textbf{Rubik Group}, $\mathcal{R}_n$.  Another way to view this group is the subgroup of the reassembly group generated by the six legal rubiks moves.  \\
 
-Calculating the Rubik Group for arbitrarily-sized cubes is no small endeavor, so we will start with $\mathcal{R}_3$, the standard cube.  It is worth noting that the Assembly Group of order 3 contains about $5.19 \times 10^{20}$ elements, or 519 quintillion.  Quite a large number considering the small size of the standard cube.  So clearly, its Rubik Group will also contain a large number of elements. \\
+Calculating the Rubik Group for arbitrarily-sized cubes is no small endeavor, so we will start with $\mathcal{R}_3$, the standard cube.  It is worth noting that the Assembly Group of order 3 contains about $5.19 \times 10^{20}$ elements, or 519 quintillion.  Quite a large number considering the small size of the standard cube.  So clearly, its Rubik Group will also contain a large number of elements.  Recall that \begin{align*}
+\mathcal{A}_3 \cong (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12})
+\end{align*}
 
-To calculate the size of the Rubik group, we will form a homomorphism $f : \mathcal{A}_3 \rightarrow G$ for some group $G$, the kernel of which will be $\mathcal{R}_n$.  This $G$ will be the direct product of four component groups $G_i, 1 \leq i \leq 4$.  For each $G_i$, there will be an associated homomorphism $f_i : \mathcal{A}_3 \rightarrow G_i$.  From these, we will make \begin{align*}
-f(\sigma) = (f_1(\sigma), f_2(\sigma), f_3(\sigma), f_4(\sigma))
+To calculate the size of the Rubik group, we will form a homomorphism $f : \mathcal{A}_3 \rightarrow G$ for some group $G$, the kernel of which will be $\mathcal{R}_3$.  This $G$ will be the direct product of three component groups $G_i, 1 \leq i \leq 3$.  For each $G_i$, there will be an associated homomorphism $f_i : \mathcal{A}_3 \rightarrow G_i$.  From these, we will make \begin{align*}
+f(\sigma) = (f_1(\sigma), f_2(\sigma), f_3(\sigma))
 \end{align*}
 These $f_i$ will be provably orthogonal, meaning that the kernel of $f$ will be exactly the intersection of the kernels of the $f_i$.
 
-\subsection{Permuting the Centers}
+\subsection{Cubie Positions}
 
-First, we will form $f_1$ by considering the permutations of the center cubies.  Note that in $\mathcal{A}_3$, we are allowed to freely permute the center cubies.  We do not have this freedom of movement with legal Rubiks moves, because the center cubies are fixed.  We are allowed to turn the cube as a whole, but not alter the relative positions of center cubies.  Thus, only a fraction of assemblies have a center arrangement that are valid.  We also note that turning the puzzle as a whole is a trivial operation with respect to the cube state; doing so doesn't really change the puzzle at all.  Thus, we design $\mathcal{R}_n$ such that all rigid motions of the puzzle (24 in total) correspond to the same element in the group.  This is different from $\mathcal{A}_n$, where we considered them different assemblies. \\
+The first subgroup $G_1$ will consider the positions (not orientations) of the edge and corner cubies.  We will first define two other homomorphisms to help us write a formal definition for $f_1$.  Let $g_e : \mathcal{A}_3 \rightarrow \mathfrak{S}_{12}$ represent the edge cubie permutation.  This will be a projection to the edge cubie component (there is only one in $\mathcal{A}_3$) that ignores the orientations of each.  This is well defined from how we defined the wreath product $C_2 \wr \mathfrak{S}_{12}$. \\
 
-With this in mind, we will choose an appropriate $G_1$.  Because in $\mathcal{A}_3$, the centers are allowed to permute in a symmetric group (yielding $6!$ permutations), but we want to consider rigid motions as being trivial operations in $\mathcal{R}_3$, we expect $|G_4| = \frac{6!}{24} = 30$.  These correspond to the 30 different ``relative arrangements'' of the center cubies. \\
+Similarly, we define $g_c : \mathcal{A}_3 \rightarrow \mathfrak{S}_{12}$ to be a projection based on the corner cubie positions.  Again, this will ignore the orientations of each and focus only on their permutation.  This is equally well-defined. \\
 
-How might we characterize a ``relative arrangement'' of the center cubies?  Well, since rigid motions of the cube are trivial operations, we choose an arbitrary center cubie (say white), and turn the cube so that the white center faces down.  Now, any choice of the center cubie opposite white will be a different relative arrangement, and there are 5 such choices.  Finally, we consider the freedom to arrange the remaining four cubies around the equator of the cube.  Any different 4-cycle of these cubies will yield a different relative arrangement.  How many four-cycles are there?  We may arbitrarily choose a cubie to place in front and rotate the cube to satisfy this.  Then we can freely position the remaining three centers, each permutation of them giving rise to a different 4-cycle. \\
-
-Putting all this together, we have our group structure for $G_1$. \begin{align*}
-G_1 \cong \mathbb{Z}_5 \times \mathfrak{S}_3
+Now consider the homomorphism $p_n : \mathfrak{S}_n \rightarrow C_2$, defined as follows: \begin{align*}
+p_n(\sigma) = \begin{cases}
+1 & \sigma \in A_n \\
+-1 & \sigma \notin A_n
+\end{cases}
 \end{align*}
-and the cardinality is what we expected.   \\
+where $A_n$ is the alternating subgroup of $\mathfrak{S}_n$.  This homomorphism denotes the \textbf{parity} of a permutation.  This value denotes whether it is an even- or odd-permutation, and will be of use to us.  We will quickly validate that this is, in fact, a homomorphism.  Let $\alpha, \beta \in \mathfrak{S}_n$ both be either even- or odd-permutations.  In either case, their composition $\alpha \beta \in A_n$, i.e. will have even permutation, and $p_n(\alpha) \cdot p_n(\beta) = 1$. \\
 
-Now, we need to define our homomorphism $f_1$.  Given $\sigma \in \mathcal{A}_3$ as an element of $\mathcal{S}_3$, let $\sigma' \in \mathfrak{S}_6$ be the restriction of $\sigma$ to the center cubie permutation.  Let $\{0,1,2,3,4,5\}$ be an ordering of the center cubies, on which $\sigma'$ can be regarded, and assume that $0,5$ are opposite each other in the solved state.  Let $\alpha \in \mathfrak{S}_6$ be an \textit{orientation-preserving} rigid motion of the center cubies such that $\alpha \sigma' (5) = 5$.  There will be exactly four choices of $\alpha$, but one may be arbitrarily chosen at this point.  This step accounts for rigidly-turning the cube to orient the white face as we did above. \\
+On the other hand, suppose that the permutations $\alpha, \beta$ have opposite parities.  WLOG, assume $p_n(\alpha) = 1, p_n(\beta) = -1$.  Then $p_n(\alpha) \cdot p_n(\beta) = 1 \cdot -1 = -1$, and the composition $\alpha \beta \notin A_n$, i.e. will be an odd permutation.  Thus, $p_n(\alpha \beta) = p_n(\alpha) p_n(\beta) = -1$.  In either case, the homomorphism requirement is satisfied. \\
 
-Suppose that $\alpha \sigma' (0) = x$ (this will be independent of our choice of $\alpha$ because $\alpha$ is orientation-preserving).  Then we define $X = \{0,1,2,3,4\} \setminus \{x\}$.  This set contains the four center cubies in the equator of the oriented-cube.  For clarity, let $Y = \{\hat{0},\hat{1},\hat{2},\hat{3}\}$ and define a bijection $g : X \rightarrow Y$ such that for $a,b \in X, a' = g(a), b' = g(b)$, $a < b \Leftrightarrow a' < b'$.  This effectively ``renames'' the elements in $X$ so that we can talk about them consistently independent of the value of $x$.  Let $y = g^{-1}(\hat{0})$.  Now, let $\beta \in \mathfrak{S}_6$ be orientation-preserving such that $\beta \alpha \sigma' (5) = 5, \beta \alpha \sigma' (y) = y$.  There will be exactly one such $\beta$ for each choice of $\alpha$, and the resulting $\beta \alpha \sigma'$ will be invariant regardless of our choice of $\alpha$ because both are orientation-preserving.  Finally, let $\theta \in \mathfrak{S}_3$ be the restriction of $\beta \alpha \sigma'$ to $g^{-1}(\{\hat{1}, \hat{2}, \hat{3}\})$.  We know this to be a valid restriction because $\beta \alpha \sigma' (5) = 5 \notin X, \beta \alpha \sigma' (0) = x \notin X, \beta \alpha \sigma' (y) = \hat{0}$. \\
-
-With all this machinery in place, we can now write that \begin{align*}
-f_1(\sigma) = (x, \theta)
+With all this in mind, we can now write a definition for $f_1: \mathcal{A}_3 \rightarrow C_2$ as 
+\begin{align*}
+f_1(\sigma) = (p_8 \circ g_c(\sigma)) \cdot (p_{12} \circ g_e(\sigma))
 \end{align*}
-We are now tasked with proving this to be a valid homomorphism $\mathcal{A}_3 \rightarrow \mathbb{Z}_5 \times \mathfrak{S}_3$.  First, we need to justify that it is a well-defined function.  To show this, we justify our claim that $\beta \alpha \sigma'$ is well-defined, even though $\alpha \sigma'$ is not.  The composition $\beta \alpha \in \mathfrak{S}_6$ is an orientation-preserving permutation.  When this permutation is composed with $\sigma'$, the result has the properties that $5 \mapsto 5$, and $y \mapsto y$.  This $y$ is well-defined because it is the minimum element other than $f^{-1}(0)$.  We know $\sigma'$ can be oriented with $y$ as a fixed-point because it is in the equator both before and after $\sigma'$.  Thus, there is an orientation-preserving orientation $\beta \alpha$ with both of these conditions.  Furthermore, it is the unique such orientation, because such an orientation $\beta \alpha$ satisfying the given conditions will induce the rest of $\beta \alpha \sigma'$ based on the fact that $\alpha, \beta$ are orientation-preserving. \\
+Verbally, this homomorphism can be thought of as being $1$ if the parities of both the edge and corner permutations are equal, and $-1$ if they are not equal.  This is a well-defined homomorphism because it is a composition and product of other well-defined homomorphisms. \\
 
-Now, we must prove that it is a homomorphism by verifying $f(\sigma_1 \sigma_2) = f(\sigma_1)f(\sigma_2)$.  Let $\sigma_1$ give rise to $(\alpha_1, \beta_1, x_1, \theta_1)$ in the above procedure, and likewise let $\sigma_2$ give rise to $(\alpha_2, \beta_2, x_2, \theta_2)$.  Now consider $\sigma_1 \sigma_2 \alpha_2 \alpha_1 (0)$. \\
+The kernel of $f_1$ is the set $\{\sigma \in \mathcal{A}_3 : p_{12} \circ g_e(\sigma) = p_8 \circ g_c (\sigma) \}$.  I.e. the permutations of edge and corner cubies (irrespective of orientations) are either both even or both odd.  We will now show that $\mathcal{R}_3 \subseteq \text{ker}(f_1)$. \\
 
-TESTING: \begin{align*}
-\sigma' = (0,1,2) \\
-\alpha = \text{Id} \\
-x = 1 \\
-X = \{0,2,3,4\} \\
-y = 0 \\
-\beta = 
-\sigma' \sigma' = (0,2,1) \\
-\end{align*}
-
-\subsection{Transposing Cubie Positions}
-
-The second way we can obtain a factor of the index is to consider the valid positions (not orientations) of the other cubies.  Consider what happens if one where to switch the positions of either two edges or two corners.  This corresponds to a transposition in the appropriate symmetric component of the reassembly group.  To see that this takes us out of the solvable orbit (which we will denote as $O_s$), we need to look at the cycle structure of any face turn of the standard cube. \\
-
-Up to isomorphism, any face turn on the 3-Cube is identical.  Consider the face turn on the white face here.  Directionality of the cycle doesn't matter with regards to cycle structure.
+Clearly the solved state (which is the identity of $\mathcal{A}_3$ and $\mathcal{R}_3$) is in the kernel, because the identity is in the kernel of any homomorphism.  Now consider any of the six generators of $\mathcal{R}_3$, which are the six face turns on the cube.  The generators are equal up to isomorphism, so we can arbitrarily choose one.  We will look at the cycle structure of the cubie positions such a move induces.
 
 \begin{center}
 \includegraphics[scale=.5]{images/faceCubieCycle.png} 
 \end{center}
 
-We are only concerning ourselves with cycles of the cubies; stickers and orientations will be considered later.  It is clear that this face turn consists of two four-cycles: one of the edge cubies (purple) and one on the corner cubies (cyan).  Since these are cycles of even length, they are odd permutations in the symmetric subgroups concerning the respective cubie permutations.  This means that applying one face turn to the solved cube will bring the cubie permutations out of their respective alternating subgroups, and a second face turn would bring them back.  Thus, any face turn toggles the parity (sign) of \textit{both} symmetric subgroups in tandem.  This means that the symmetric edge and corner components $S_{\text{edges}}, S_{\text{corners}}$ satisfy
+In any face turn, we see exactly two four-cycles: one of the edge cubies and one of the corners.  Let $\alpha \in \mathcal{R}_3$ be such a move.  Because a four-cycle is an odd-permutation, applying it to any element of the symmetric group containing it will toggle the parity of that element.  As such, we see that $p_{8} \circ g_c (\alpha) = p_{12} \circ g_e (\alpha) = -1$.  Thus, $f_1(\alpha) = 1$ and $\alpha \in \text{ker}(f_1)$.  Thus, any face turn is in the kernel of $f_1$.  \\
+
+Note that the kernel of a homomorphism is a normal subgroup, and therefore closed under group multiplication.  Because we have shown that any generator of $\mathcal{R}_3$ is an element of $\text{ker}(f_1)$, and any element of the group can be expressed as a product of generators (by definition), we have that $\mathcal{R}_3 \subseteq \text{ker}(f_1)$.
+
+\subsection{Edge Orientations}
+
+For our next homomorphism, $f_2$, we will focus on the orientations of the edge cubies.  We will derive a homomorphism $f_2 : \mathcal{A}_3 \rightarrow C_2$ that denotes the ``total'' orientation of all twelve edges.  \\
+
+Formally, we first define $h: \mathcal{A}_3 \rightarrow C_2 \wr \mathfrak{S}_{12}$ be the projection map down to the edge cubie component of our reassembly group.  Let $g_i : C_2 \wr \mathfrak{S}_{12} \rightarrow C_2, 1 \leq i \leq 12$ be homomorphisms that look at the orientations of the 12 distinct edge cubies (arbitrarily ordered).  These can be thought of as reading off the value from $C_2$ that is the nonzero entry of the $i$th column in the matrix element of $C_2 \wr \mathfrak{S}_{12}$.  These are well-defined homomorphisms that just throw-away information in $\mathcal{A}_3$ that we aren't currently concerned with.  We can then define $f_2: \mathcal{A}_3 \rightarrow C_2$ by
 \begin{align*}
-(S_{\text{edges}},S_{\text{corners}})
-&\in
-(\mathfrak{A}_{12} \times \mathfrak{A}_7)
-\cup
-(\bar{\mathfrak{A}_{12}} \times \bar{\mathfrak{A}_7})
+f_2(\sigma) = \Pi_{i=1}^{12}g_i \circ h (\sigma)
+\end{align*}  
+I.e. taking the orientations of each of the twelve edges and forming their product.  We will prove this is a well-defined homomorphism using the following lemma.
+
+\begin{lemma}
+Let $G,H$ be groups, with $H$ abelian.  Let $f,g:G \rightarrow H$ be homomorphisms.  Then $k: G \rightarrow H$ defined by $k(x) = f(x)g(x)$ is a homomorphism.
+\end{lemma}
+
+\begin{proof}
+Let $a,b \in G$.  Then,
+\begin{align*}
+k(ab) &= f(ab)g(ab) \\
+&= f(a)f(b)g(a)g(b) \\
+&= f(a)g(a)f(b)g(b) \\
+&= k(a)k(b)
 \end{align*}
-where $\mathfrak{A}_n$ is the alternating group of order n.  This is just a restatement of the fact that these parities in the symmetric subgroups must be equal. \\
+\end{proof}
 
-This means that in a cube state in $O_s$, the edge positions are in an even parity with regards to their symmetric component if and only if the corners are as well, and likewise for odd parities.  Now, consider what happens if we apply a transposition on any two of the edges or corners.  WLOG, assume edges.  That will toggle the edge permutation parity, while preserving the parity of the corner pieces.  There is no legal move to fix this parity error, thus it is a different orbit.  This gives us a factor of 2 in the index $[\mathcal{A}_n : \mathcal{R}_n]$.
+This same argument can be extended to apply to any number of homomorphisms, in our case the $g_i \circ h$'s.  Since $C_2$ is abelian, this theorem applies, and $f_2$ is a homomorphism. \\
 
-\subsection{Flipping An Edge}
-
-In the first example of an illegal move, we focused on swapping two cubies without concern for any notion of ``orientation''.  We were merely concerned with the positions of the pieces, not their alignment.  This is enough to obtain a factor of 2 in the group index, or in other words, that the size of the Rubik Group $\mathcal{R}_n$ is at most half that of the size of the assembly group $\mathcal{A}_n$.  To continue with this question, however, we do need to talk about orientation of the cubies. \\
-
-Orientation of the edge cubies is simpler than that of the corners, so we will start there.  Orientation can be arbitrarily chosen, and our choice of orientation systems will not affect the eventual result, however it will be easier to talk about orientation if we choose an intuitive definition.  We will choose an orientation scheme that is homogenous across all of the faces of the cube.  On each of the 12 edge cubies, we will choose one sticker and place a dot on it.  This can be done in such a way that every cube face has two dots on it, and in particular it will be nice if those dots are on opposite sides of the faces.  Then, we will also put dots on the center cubies adjacent to the edge dots.  This will be used later to determine what we mean by orientation.  Here is one such example.
-
-\begin{center}
-\includegraphics[scale=.65]{images/edgeOrientation.png} 
-\end{center}
-
-One important caveat of this physical representation is that the purple dots on the center stickers do not rotate with the underlying cubie.  While hardly realistic, this is important because if it weren't the case, then you could end up with two purple dots adjacent to different stickers of the same edge cubie, rendering our orientation scheme meaningless.  The purple dots are purely there for reference.  With this orientation in mind, though, we can construct a graph of the 24 possible edge position-orientation pairs and the transitions they can undergo with a legal move.  This number arises because there are 12 edges and any of them can be in one of two orientations.  We will call the orientations where the cyan dot is aligned with a purple dot ``positive'' and the other scenario ``negative'' orientation.  There are twelve of each, and it turns out that graphing them out results in a very nice bipartite graph such as this one.
+Now, we will prove that $\mathcal{R}_3 \subseteq \text{ker}(f_2)$.  To do this, we need to prove that any solvable configuration of the cube has the ``total'' orientation of its edge cubies be positive.  We will show this is the case by proving that any face-turn of the cube will toggle the orientation of all four edge cubies involved in it.  Consider the set of all position-orientation pairs that a cubie can exist in.  There are twelve positions, each with two orientations.  We now form a graph with the vertex set being these 24 items, and the edge set being those pairs which can be reached via exactly one face turn from each other.  Such a graph looks like this.
 
 \begin{center}
 \includegraphics[scale=.35]{images/Rubiks_Edge_Graph.jpg} 
 \end{center}
 
-The bipartiteness of this graph is very significant.  It tells us that given an edge cubie in some arbitrary position and orientation, any turn of a face that contains it will flip it to the opposite orientation.  Because this is true of all four edge cubies involved in that Rubik's move, this tells us that we can never toggle the orientation of an odd number of edges with any legal moves.  This means that any reassembly of the cubies that contains an odd number of positively (or, equivalently, negatively) oriented edges in this scheme cannot be solved using legal moves.  This gives us a factor of at least 2 in our index of the Rubik's Group. \\
+Note that this graph is bipartite, as indicated by the two-coloring.  Also note that for each position, its two orientations are in opposite partite sets.  I.e. $UR$ is blue, and $RU$ is red.  These facts mean that we can define a valid orientation scheme such that the orientation system is well-defined, and any time an edge cubie undergoes a face turn, its orientation flips.  Thus, when any face turn is applied, all four edge cubies affected flip orientation. \\
 
-It is not immediately obvious, however, whether we can toggle the orientation of exactly two edges.  If this is impossible, then we have actually gained a factor of 4 rather than 2 in the index, as the number of positively-oriented edges for any legal state of the cube would have to be 0 mod 4 (i.e. one quarter of the possible assemblies).  The easiest way to disprove this possibility is to find a sequence of moves that flips in-place exactly two edges.  One such sequence is
+Since this happens to an even number of edge cubies in any face turn, the total orientation will be preserved.  In other words, if $\alpha$ is any face turn in $\mathcal{R}_3$, then $f_2(\alpha) = 1$ and $\alpha \in \text{ker}(f_2)$.  Just as with $f_1$, this shows that $\mathcal{R}_3 \subseteq \text{ker}(f_2)$ due to the face turns being generators for $\mathcal{R}_3$.
 
+\subsection{Corner Orientations}
+
+We will now prove a similar claim for the corner orientations.  We will define a homomorphism $f_3 : \mathcal{A}_3 \rightarrow C_3$ that denotes the total orientation of the corner cubies, and prove that $\mathcal{R}_3 \subseteq \text{ker}(f_3)$. \\
+
+Just as before, let $h: \mathcal{A}_3 \rightarrow C_3 \wr \mathfrak{S}_8$ be the projection map to the corner cubie component.  Next, let $g_i: C_3 \wr \mathfrak{S}_8 \rightarrow C_3, 1 \leq i \leq 8$ be homomorphisms that look at the orientation for each of the 8 corner cubies.  Now we define $f_3$ by
 \begin{align*}
-(Ur)^4(U'r)^4
+f_3(\sigma) = \Pi_{i=1}^{8}g_i \circ h (\sigma)
 \end{align*}
 
-Where the exponent signifies repetition of the steps and the lowercase r is, again, a slice move parallel to the right face. This sequence of moves flips in-place the UR and UL edges.  Using this knowledge, one can easily flip in-place any two arbitrary edges.  Simply conjugate the above sequence with a series of moves $S$ that puts the target edges into the UR and UL positions.  Moving the edge pieces there, flipping them, and then undoing the ``set-up moves'' as they are known to Rubik's Cube solvers is a safe, non-destructive way to flip any two arbitrary edges.  This knowledge combined with our previous statement from the graph proves that any cube state in the solvable orbit \textit{must} have an even number of positively-oriented edge pieces.  In particular, this shows that we gain a factor of exactly 2 in our index of the group, as desired.
+Again, because $C_3$ is abelian, this is a well-defined homomorphism.  We now must prove that any face turn preserves the total orientation of the corner cubies.  While there is probably a way to prove this property using a graph as well, the graph in question would be a 6-regular graph on 24 vertices, and it is not obvious what property we would even be looking for.  Because of this, we will fall back to a more brute-force approach.  \\
 
-\subsection{Rotating a Lone Corner}
-
-We now wish to prove a similar result about the corner cubies.  While we could construct a graph similar to the one above for this purpose, it would not be as immediately useful.  The usefulness of the above graph came about primarily from its bipartiteness; a property that we were able to exploit.  Unfortunately, it is less clear what sort of ``graph property'' we could exploit for the corners, because they have three orientations rather than two.  Tripartiteness seems likely, but there is much less that we could say about a tripartite graph than a bipartite one.  Thus, we need to go a different route. \\
-
-We still would like to find some sort of ``invariant'' about the solvable orbit that leads us to information about the orientation of the corners.  Towards that end, we will first assign an orientation to each corner cubie.  Note that every corner cubie has either a white sticker or a yellow sticker, as these are opposite faces on the cube.  We can use this to fix an orientation on each piece.  To each sticker on the corner cubies, we will assign a number in $\mathbb{Z}_3$.  The white and yellow stickers will be given zeroes, and we will write 1 and 2 on the other stickers in a clockwise fashion.  This results in the following labelling of the stickers.
+Consider an orientation scheme for the corners defined as follows.  Start with a solved cube, and label the stickers on each of the corner cubies $0,1,2$ in cyclic order, with the $0$ being placed on the white or yellow sticker and proceeding in clockwise order.  Every corner cubie has either a white or yellow sticker, so this is well-defined.  The resulting labelling looks as follows:
 
 \begin{center}
 \includegraphics[scale=1.5]{images/cornerOrientation.png} 
 \end{center}
 
-We will now look at the sum of the numbers on the white and yellow faces (as determined by their colored centers).  We will show that applying any sequence of moves to the cube will always leave this sum unchanged.  Since the solved cube has an orientation sum of 0, this will show that all solvable cube assemblies \textit{must} have an orientation sum of 0. \\
+Note that these labelings are values in $\mathbb{Z}_3$ rather than $C_3$.  These groups are isomorphic, so we will introduce the simple isomorphism $q: \mathbb{Z}_3 \rightarrow C_3$, $q(0) = 1, q(1) = \omega, q(2) = \omega^2$ where $\omega$ is the primitive 3rd root of unity.  This will bridge the gap between these groups. \\
 
-We will look at each of the six standard face turns of the cube: U,D,L,R,F,B.  Assume without loss of generality that the white face is oriented up, and the red face is oriented to the front (as in the above picture).  Turning the white or yellow faces (U and D) are trivial with respect to corner orientation, as the numbers written on these faces will not change. \\
+Now we may introduce a shortcut for each $g_i \circ h$.  For corner $i$ (which one may arbitrarily have ordered), read off the label on either the white or yellow face, and then apply the isomorphism $q$.  This is well-defined as every corner cubie must have exactly one sticker on exactly one of those faces. \\
 
-For the other four standard moves, we can observe that they are all isomorphic with respect to corner orientation.  Looking at the front face (red above), starting from the upper-left corner sticker and running clockwise around that face, we read off the sequence 1,2,1,2.  This is the same for any of the F,R,B,L faces.  Thus, we only need to test one of these turns and the result will be valid for any of the four.  Without loss of generality, we choose the red front face to rotate clockwise.  Doing so will result in the following cube configuration:
+Because all of these functions are homomorphic, we can carry this shortcut up to $f_3$.  For some cube configuration $\sigma$, $f_3(\sigma)$ will be the result of applying $q$ to the sum mod 3 of the labels on the white and yellow faces.  With this machinery in place, we can look at what happens to $f_3(\alpha \sigma)$ for different face turns $\alpha$.  Note that in this setup, not all face turns are identical, because the white and yellow faces have extra meaning. \\
+
+If $\alpha$ were either the white or yellow face, then the result of $f_3(\alpha)$ is rather trivial.  In either case, the zeroes just rotates around the appropriate face, and the sum of labelings won't change.  Thus, $f_3(\alpha) = q(0) = 1$. \\
+
+The more interesting cases are the other four face turns.  These four are all identical up to isomorphism.  In the solved state, each of these four faces all contains a pair of 1's and a pair of 2's, with each pair being diagonal from itself.  Thus, we can arbitrarily choose one face to rotate.  In choosing the red face, the result is as follows:
 
 \begin{center}
 \includegraphics[scale=1.5]{images/rotatedCornerOrientation.png} 
 \end{center}
 
-Adding up the numbers on the white and yellow faces again, they sum to $6 \cong_3 0$.  In particular, we need to look at what happened to each of the four corner cubies that have moved.  This table outlines where each cubie was (including orientation), where it went to, and the change in its orientation value.
+Note that in adding up the values on the white and yellow faces, the result is $6 \cong_3 0$.  In looking a little closer, we see why this is the case.  Consider the two corner cubie locations in the white face that were affected.  If we ignore the fact that specific cubies left and entered these locations and look solely at the change in orientation, we see that the two locations changed orientation in offsetting ways.  The front-up-left corner location had its cubie turned 120 degrees counter-clockwise (a change of $+1$).  The front-up-right corner cubie location experienced a clockwise rotation by the same amount (a change of $-1 \cong_3 +2$).  These two changes offset, causing the sum of the white face mod 3 to remain zero.  A similar scenario occurred on the yellow face: the corner orientation changes offset. \\
+
+Since these corner-offsets will happen independent of the starting state of the cube, it is clear that any face-turn will preserve the orientation sum of the corners.  And since these face turns are the generators of $\mathcal{R}_3$, it is clear that $\mathcal{R}_3 \subseteq \text{ker}(f_3)$.
+
+\subsection{Putting it all together}
+Now, we have formed three homomorphisms $f_1,f_2,f_3$ and shown that $\mathcal{R}_3$ lies inside the kernel of each.  We now consider the homomorphism $f: \mathcal{A}_3 \rightarrow C_2 \times C_2 \times C_3$ formed by $f(\sigma) = (f_1(\sigma), f_2(\sigma), f_3(\sigma))$.  From what we have proven thus far, it is clear that $\mathcal{R}_3 \subseteq \text{ker}(f)$.  We will prove that, in fact, $\mathcal{R}_3 = \text{ker}(f)$.  In typical fashion, this set equality will be proven by showing that $\text{ker}(f) \subseteq \mathcal{R}_3$.  To do this, we will provide a number of legal move sequences that each perform a small operation on the cube state.  These operations can be sequenced to solve any cube state that lies in the kernel of $f$, showing the subset property desired. \\
+
+Let $\sigma \in \text{ker}(f)$ be a cube assembly.  From what we have proven, we know three crucial, orthogonal facts about $\sigma$.  \begin{enumerate}
+\item The parities of the permutations of the edge and corner cubies are equal.
+\item The total orientation the edges is zero.
+\item The total orientation of the corners is zero.
+\end{enumerate}
+
+\subsubsection{Positioning Edges}
+
+The first move sequence we list will swap the positions of exactly two edge cubies.  It will also permute the corner cubies somewhat (as it must in order to preserve property 1), but this will not be a concern yet.  The move sequence is listed below, and is read from left to right.  Below it is the cube state that results from applying it to the solved cube.
+\begin{verbatim}
+Move sequence 1 - Edge Position Transposition
+R' U2 R U R' U R U' R' U2 R U R' U R
+\end{verbatim}
 
 \begin{center}
-\begin{tabular}{|c|c|c|}
-\hline 
-From	 & To & Orientation Change mod 3 \\ 
-\hline 
-FUL (0) & FUR (2) & +1 \\ 
-\hline 
-FUR (0) & FDR (2) & -1 $\cong$ +2 \\ 
-\hline 
-FDR (0) & FDL (1) & +1 \\ 
-\hline 
-FDL (0 & FUL (2) & -1 $\cong$ +2 \\ 
-\hline 
-\end{tabular} 
+\includegraphics[scale=3]{images/moves/transposeEdges.png} 
 \end{center}
 
-Consider applying this move to an arbitrarily-assembled cube.  We don't know what the initial and final orientation values on these four cubies would be, but we do know that the orientation \textit{change} for each cubie will be the same as above.  This is guaranteed because of how we have defined the orientation scheme.  As stated above, this same sort of result would be obtained for turning any of the four faces that are neither the top nor bottom, and they have an even simpler case.  Thus, we have shown that no standard Rubik's move will change the orientation sum of its configuration, and because the solved state has orientation sum zero, so must all the solvable configurations. \\
+Note that this move sequence has performed a transposition between the red-white and orange-white edges, as well as a four-cycle on the four white corners.  At this point in our solution, however, all we care about is the transposition of edges. \\
 
-Because exactly one third of possible assemblies have a corner orientation sum of zero, we have guaranteed that we will get at least a factor of 3 in the Rubik's Group index from this setup.  However, we have not yet shown that \textit{all} corner assemblies with orientation sum zero are solvable (which would make it exactly 3).  From what we have shown thus far, it could be the case that the solvable orbit of the cube does not contain every zero-orientation-sum assembly of the corners.  We will prove now that it, in fact, does. \\
+Let $\alpha \in \mathcal{R}_3$ represent this move sequence.  In order to form a move sequence that can perform this transposition on two arbitrary edge cubies, we need only conjugate $\alpha$ by some element $\beta \in \mathcal{R}_3$ that will move the target edge cubies into the red-white and orange-white positions.  Then the sequence $\beta^{-1}\alpha\beta\sigma$ (read right to left) will be a cube state with the target two edge cubies swapped, and some arbitrary four-cycle applied to four corner cubies.  Everything else will be preserved in $\sigma$. \\
 
-We have shown from above that one cannot construct a sequence of valid moves to rotate in-place a single corner, leaving the orientations of the others fixed.  Doing so would alter the orientation sum, which cannot happen.  It is possible, however, to rotate two adjacent corners in tandem, one clockwise and the other anti-clockwise.  That is best shown by an example move sequence. \\
+Because we can repeat this process as much as needed, we can form a series of moves that will place all 12 edge cubies in $\sigma$ into their solved locations.  We are not concerned with their orientations, nor are we concerned with any other cubies at this time.  Let $\sigma_1$ be the result of applying this sequence of moves to $\sigma$ a sufficient number of times to position all the edge cubies correctly.
 
-Let $S$ be the move sequence $R'D'RD$.  This is a standard one-line commutator in solving, and is a building block of the sequence we desire.  The entire sequence then looks like
-\begin{align*}
-S^2 U S^4 U' &= (R'D'RD)^2 U (R'D'RD)^4 U'
-\end{align*}
+\subsubsection{Positioning Corners}
 
-This sequence rotates in-place the FUR and BUR corner cubies, the former being rotated counter-clockwise and the latter clockwise.  The resulting cube then looks like
+We will now perform a similar operation on the corner cubies.  We know that the parity of the edge cubie positions in $\sigma_1$ is zero (it is an even permutation) because the edge cubies are correctly placed.  Due to our parity constraint we established earlier, we now know that the permutation of the corner cubies in $\sigma_1$ is even, i.e. is a member of $A_8$.  As such, the corner cubie permutation is generated by some sequence of three-cycles.  We will now demonstrate a move sequence that performs such a cycle. \\
+
+\begin{verbatim}
+Move Sequence 2 - Corner Cubie Three-Cycle
+R' F R' B2 R F' R' B2 R2
+\end{verbatim}
 
 \begin{center}
-\includegraphics[scale=1.5]{images/twoCornersRotated.png} 
+\includegraphics[scale=3]{images/moves/threeCycleCorners.png} 
 \end{center}
 
-The orientation sum is still zero (as expected), as the orientation changes of these two counteract each other.  Note that this sequence can be easily adapted to rotate any two adjacent corners in a similar manner.  In fact, it can be adapted to rotate \textit{any} two corners similarly, but for our purposes we only need to know that any adjacent corners can be likewise rotated. \\
+This move sequence performs a three-cycle on the white-red-blue, white-blue-orange, and white-orange-green corners, and leaves the rest of the cube untouched.  Again, we are not yet concerned with the orientation of any cubies.  The existence of such a three-cycle is all that we need at this point. \\
 
-The easiest way to see this is to let the above sequence be denoted as $\hat{S}$, and then conjugate it by some sequence of moves that put the target two cubies in the FUR and BUR positions.  If this sequence consists of simple whole-cube turns, then we will be rotating adjacent corners, and more complex sequences can be used to rotate arbitrary corner-pairs.  Let $A$ be the sequence that moves the target two corners into the appropriate locations.  Then the sequence $A\hat{S}A^{-1}$ will perform the desired function.  It positions the target cubies appropriately, rotates them, and then moves them back to where they were.  This is totally non-destructive, as the only cubies affected by $\hat{S}$ are the corners being rotated. \\
+Let $\alpha \in \mathcal{R}_3$ be this move sequence.  Just as before, we can conjugate this $\alpha$ by some arbitrary move sequence $\beta \in \mathcal{R}_3$ to move any three arbitrary corners into the correct positions to be cycled.  The resulting product $\beta^{-1}\alpha\beta\sigma_1$ will then have the chosen three corners cycled.  Because we can perform this operation to any three arbitrary corner cubies, we can use this move sequence to correctly place the corner cubies without affecting the rest of the cube. \\
 
-With this knowledge in mind, we can now construct a simple vector space and use some linear algebra to prove our claim.  Let $V$ be the vector space over the field $\mathbb{Z}_3^8$ obtained by mapping an ordered-sequence of the 8 corner cubies to their localized orientations in a given \textit{solvable} cube configuration.   Let $W$ be the vector space over the same field such that the sum of the components is 0.  Our previous proof shows that $V$ is a subspace of $W$, but we do not yet know if it is a proper subspace. \\
+Let $\sigma_2$ be the result of applying this operation as many times as are needed to correctly place the corner cubies.  Thus, $\sigma_2$ will have all the cubies on the cube properly placed, although not necessarily oriented correctly.  We are one step closer to a solved cube, though.
 
-Because we have shown that we can rotate any two adjacent corners in opposite directions, this gives rise to 12 generators for $V$.  These generators are column vectors $v$ such that $v_i = 1, v_j = 2 \Leftrightarrow $ corner cubies $i,j$ are adjacent.  We know that $W$ has dimension 7, as any vector can be thought of as 7 arbitrarily-chosen components, and then the eighth is fixed by the vector space description.  Thus, $V$ has dimension at most 7.  Assume for our purposes that we have ordered the 8 corner cubies as follows:
+\subsubsection{Orient Edges}
+
+Because of our edge orientation constraint established in $\text{ker}(f)$, we know that the total number of flipped edges in $\sigma_2$ must be even.  Thus, if we can find a move sequence to flip in-place exactly two edges and leave the rest of the cube untouched, we can use that move sequence to orient all 12 edges.  Here is one such sequence.  It uses a lowercase r to indicate a slice move of the middle slice, rotated clockwise parallel to the right face.
+
+\begin{verbatim}
+Move Sequence 3 - Flip In-Place Two Edges
+r U r U r U2 r' U r' U r' U2
+\end{verbatim}
 
 \begin{center}
-\includegraphics[scale=1]{images/labelledWireframe.png} 
+\includegraphics[scale=3]{images/moves/flipTwoEdges.png} 
 \end{center}
 
-Then, we can look at seven such generating vectors that are the columns of the matrix
+This move sequence flips in-place the white-red and white-orange edges, and leaves the rest of the cube untouched.  Just as with our previous move sequences, we can conjugate this operation by moves that place two arbitrary edge cubies in these locations, flip them using this sequence, and then return them to their original locations, still flipped.  Because we know there are an even number of ``flipped'' edge cubies in $\sigma_2$, this operation and its conjugations can orient all of the edge cubies. \\
 
-\begin{align*}
-\begin{matrix}
-1 & 0 & 0 & 0 & 0 & 0 & 0 \\ 
-2 & 1 & 0 & 0 & 0 & 0 & 0 \\ 
-0 & 2 & 1 & 0 & 0 & 0 & 0 \\ 
-0 & 0 & 2 & 1 & 0 & 0 & 0 \\ 
-0 & 0 & 0 & 2 & 1 & 0 & 0 \\ 
-0 & 0 & 0 & 0 & 2 & 1 & 0 \\ 
-0 & 0 & 0 & 0 & 0 & 2 & 1 \\
-0 & 0 & 0 & 0 & 0 & 0 & 2 
-\end{matrix} 
+Let $\sigma_3$ be the result of performing this operation as many times as needed until all the edge cubies are properly oriented.
+
+\subsubsection{Orient Corners}
+
+All that remains to be done to $\sigma_3$ is orienting the corner cubies.  We know from our previous constraints that the total orientation of all the corner cubies must be zero, since $\sigma_3 \in \text{ker}(f)$.  As such, suppose there exists a corner cubie in $\sigma_3$ that is twisted clockwise from its solved orientation.  Then one of two conditions must be satisfied.  Either there is another corner cubie that is twisted counter-clockwise elsewhere on the cube, or there are two other corner cubies also twised clockwise.  We will now present a move sequence that can be used to handle either of these cases.  Note that our choice of a corner being twisted clockwise was arbitrary.  If the opposite case occurs, then one need only iterate the following algorithm twice (or once in reverse) to solve the opposite problem.
+
+\begin{verbatim}
+Move Sequence 4 - Rotate a pair of corners in-place
+(R' D' R D) (R' D' R D) U' (R' D' R D) (R' D' R D) (R' D' R D) (R' D' R D) U
+\end{verbatim}
+
+\begin{center}
+\includegraphics[scale=3]{images/moves/rotateTwoCorners.png} 
+\end{center}
+
+This move sequence has rotated the white-red-blue corner counter-clockwise and the white-red-green corner clockwise.  Just as in the previous move sequences, this sequence can be conjugated by legal cube moves to place two arbitrary corner cubies in the correct locations to be twisted.  This move sequence can can thus be used to twist two arbitrary corners in opposite directions, solving the first case presented above. \\
+
+It can also be used to solve the second case, where there are three corner cubies twisted in the same direction.  WLOG, assume that all three are twisted clockwise and perform this conjugated move sequence to twist two of them in opposite directions.  This will solve one corner and leave the other twisted clockwise twice.  Note that because the corner orientations stem from a $C_3$  group, being twisted clockwise twice is the same as being twisted counter-clockwise once.  As such, we are left with one solved cubie, one twisted clockwise, and one twisted counter-clockwise.  This has reduced case 2 above to case 1, and can be solved using another iteration of this move sequence.  \\
+
+Because the total orientation of all the corners in $\sigma_3$ must be zero (per our constraints in the kernel of $f$), and any combination of twisted corners with that property can be solved using this move sequence, we know that we can solve the corners of $\sigma_3$ using conjugations of this move.  Because $\sigma_3$ was entirely solved except for the orientations of the corner cubies, which we have just solved, we know $\sigma_3 \in \mathcal{R}_3$.  Since $\sigma_3$ was reached from $\sigma$ using only legal Rubik's moves, $\sigma \in \mathcal{R}_3$ as well.  Thus, $\text{ker}(f) \subseteq \mathcal{R}_3$. \\
+
+This implies that $\mathcal{R}_3 = \text{ker}(f)$, which is a normal subgroup of $\mathcal{A}_3$ by definition.
+
+\subsection{Cardinality of the Rubiks Group}
+
+We have thus established that $\mathcal{R}_3 = \text{ker}(f)$.  Because this is a normal subgroup, its index $[\mathcal{R}_3 : \mathcal{A}_3]$ is well-defined as the cardinality of the quotient group $\frac{\mathcal{A}_3}{\mathcal{R}_3}$.  Because $\mathcal{R}_3$ is the kernel of $f: \mathcal{A}_3 \rightarrow C_2 \times C_2 \times C_3$, the cardinality of that quotient group is equal to the cardinality of the image of $f$.  The cardinality of $C_2 \times C_2 \times C_3$ is simply 12 by definition of direct product of groups.  Thus, \begin{align*}
+\frac{|\mathcal{A}_3|}{|\mathcal{R}_3|} = 12
 \end{align*}
-
-The columns of this matrix are independent, meaning its rows are 7 independent vectors in $W$.  Because all of these vectors can be realized in $V$ as well, and the number of vectors is equal to the dimension of $W$, we know that $V=W$.  This tells us that a cube assembly with a corner orientation sum of zero, corners can be rotated such that they are solved using legal moves.  This tells us that we obtain a factor of exactly 3 in the index of the Rubik's Group from the corner orientations.
-
-\subsection{Cardinality of the Group}
-From what we have proven in the previous few sections, we know that the index of the Rubik-3 Group in the Assembly-3 group, written $[\mathcal{R}_3 : \mathcal{A}_3] = 30 \cdot 2 \cdot 2 \cdot 3 = 360$.  Thus, the size of the Rubik Group can be calculated as \begin{align*}
-|\mathcal{R}_3| &= \frac{|\mathcal{A}_3|}{30 \cdot 2 \cdot 2 \cdot 3} \\
-&= \frac{7! \cdot 3^7 \cdot 12! \cdot 2^{12} \cdot 6!}{30 \cdot 2 \cdot 2 \cdot 3} \\
-&\approx 4.3252003 \times 10^{19}
+From this, we can calculate the cardinality of $\mathcal{R}_3$ as \begin{align*}
+|\mathcal{R}_3|
+&= \frac{|\mathcal{A}_3|}{12} \\
+&= \frac{3^8 \cdot 8! \cdot 2^{12} \cdot 12!}{12} \\
+&= 3^7 \cdot 8! \cdot 2^{10} \cdot 12! \\
+&\approx 4.3252003 \cdot 10^{19}
 \end{align*}
-
-There is an important note to make here about how we handled duplicate ``assemblies'' in the assembly group.  To account for this, we fixed one corner piece in both position and orientation.  It is not immediately obvious how this was handled in the Rubik's Group or its index, but this was actually not a concern.  Because we never included any whole-cube rotations in $\mathcal{R}_3$, there is no way for duplicates to arise.  In this group, the center pieces are fixed and handle orientation of the puzzle, preventing duplicates.  To map this to an element of $\mathcal{A}_3$, one simply needs to locate the ``fixed'' corner cubie, and turn the cube as a whole to properly position and orient this cubie as needed for the assembly group. \\
-
-While this distinction could be important in describing the intricacies of $\mathcal{R}_3$ as a subgroup of $\mathcal{A}_3$, it is not important in talking about cardinalities.  To be pedantic, one could describe a group isomorphic to $\mathcal{R}_3$ that rotates cube states appropriately, and \textit{that} group would technically be a subgroup of $\mathcal{A}_3$.  If this distinction becomes important at a latter point, we will address it then.  For now, it is best left down in the weeds.
+or about 43 quintillion.
 \end{document}

@@ -9,8 +9,12 @@
 \contentsline {subsection}{\numberline {2.2.2}Cubie Sub-Type Restrictions}{5}
 \contentsline {subsection}{\numberline {2.2.3}Edge Sub-Type Orientation Restriction}{7}
 \contentsline {section}{\numberline {2.3}The Rubik Group}{8}
-\contentsline {subsection}{\numberline {2.3.1}Permuting the Centers}{9}
-\contentsline {subsection}{\numberline {2.3.2}Transposing Cubie Positions}{10}
-\contentsline {subsection}{\numberline {2.3.3}Flipping An Edge}{11}
-\contentsline {subsection}{\numberline {2.3.4}Rotating a Lone Corner}{13}
-\contentsline {subsection}{\numberline {2.3.5}Cardinality of the Group}{16}
+\contentsline {subsection}{\numberline {2.3.1}Cubie Positions}{9}
+\contentsline {subsection}{\numberline {2.3.2}Edge Orientations}{10}
+\contentsline {subsection}{\numberline {2.3.3}Corner Orientations}{11}
+\contentsline {subsection}{\numberline {2.3.4}Putting it all together}{13}
+\contentsline {subsubsection}{Positioning Edges}{13}
+\contentsline {subsubsection}{Positioning Corners}{14}
+\contentsline {subsubsection}{Orient Edges}{15}
+\contentsline {subsubsection}{Orient Corners}{16}
+\contentsline {subsection}{\numberline {2.3.5}Cardinality of the Rubiks Group}{17}
