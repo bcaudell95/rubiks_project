@@ -1,3 +1,5 @@
+{-# LANGUAGE GADTs, DatatypeContexts #-}
+
 module Cubie where
 import Rubiks
 import Data.Maybe (fromJust, isJust)
@@ -25,7 +27,14 @@ type CubieFunc c         = CubieX -> CubieY -> CubieZ -> c
 type CubieComboFunc c s  = CubieFunc (Maybe (c, CubieStickerFunc s))
 
 -- This structure wraps up all of the above into a representation of 
-data CubieMap c s        = CubieMap CubeSize (CubieComboFunc c s)
+data CubieMap c s where
+    CubieMap :: CubeSize -> (CubieComboFunc c s) -> CubieMap c s
+
+instance (Show c, Show s) => Show (CubieMap c s) where
+    show = show . (fmap (\(_,_,f) -> stickersOnCubie f)) . listCubies
+
+stickersOnCubie :: CubieStickerFunc s -> [Maybe s]
+stickersOnCubie func = [func] <*> [DirUp, DirFront, DirLeft, DirBack, DirRight, DirDown]
 
 --Pseudo-Functor abilities that map over the cubie values and the sticker values
 mapOverCubies :: (c1 -> c2) -> CubieMap c1 s -> CubieMap c2 s
@@ -40,13 +49,13 @@ isOuterCoordinate size c = (abs c) == (size `div` 2)
 -- These functions can be used to map the Cube representation defined in Rubiks to this representation
 getStickersFor :: Cube a -> CubieX -> CubieY -> CubieZ -> ThreeDimensionalDir -> Maybe a
 getStickersFor cube@(Cube size func) x y z d
-    | (x == k') && (d == DirLeft)   = Just $ func 2 y      z 
-    | (x == k ) && (d == DirRight)  = Just $ func 4 ((-1)*y) z
-    | (y == k ) && (d == DirUp)     = Just $ func 0 x z
-    | (y == k') && (d == DirDown)   = Just $ func 5 ((-1)*x) z
-    | (z == k') && (d == DirFront)  = Just $ func 1 x      y
-    | (z == k ) && (d == DirBack)   = Just $ func 3 x      ((-1)*y)
-    | otherwise                 = Nothing
+    | (x == k') && (d == DirLeft)   = Just $ func 2 y           z     
+    | (x == k ) && (d == DirRight)  = Just $ func 4 ((-1)*y)    z
+    | (y == k ) && (d == DirUp)     = Just $ func 0 x           z
+    | (y == k') && (d == DirDown)   = Just $ func 5 ((-1)*x)    z
+    | (z == k') && (d == DirFront)  = Just $ func 1 x           y    
+    | (z == k ) && (d == DirBack)   = Just $ func 3 x           ((-1)*y)
+    | otherwise                     = Nothing
     where k = size `div` 2
           k' = (-1)*k
  
@@ -80,10 +89,22 @@ cubiesToCube m@(CubieMap size _) = Cube size $ stickerAt m
 stickerAt :: CubieMap c s -> FaceId -> XPos -> YPos -> s 
 stickerAt m@(CubieMap size func) f x y = case f of
     0 -> fromJust $ snd (fromJust $ func x  k  y ) $ DirUp
-    1 -> fromJust $ snd (fromJust $ func x  y  k ) $ DirFront
+    1 -> fromJust $ snd (fromJust $ func x  y  k') $ DirFront
     2 -> fromJust $ snd (fromJust $ func k' x  y ) $ DirLeft
     3 -> fromJust $ snd (fromJust $ func x  y' k ) $ DirBack
     4 -> fromJust $ snd (fromJust $ func k  x' y ) $ DirRight
     5 -> fromJust $ snd (fromJust $ func x' k' y ) $ DirDown
     where k = size `div` 2
           x':(y':(k':[])) = map (*(-1)) [x,y,k] -- Defined for convencience in referencing negatives
+
+getCornersFor :: CubieMap c s -> [((CubieX, CubieY, CubieZ), [Maybe s])] 
+getCornersFor c@(CubieMap size func) = (fmap (\(a,_,f) -> (a, stickersOnCubie f))) unwrapped
+    where k = size `div` 2
+          range = [k, ((-1)*k)]
+          maybeList = [((x,y,z), func x y z) | x <- range, y <- range, z <- range] 
+          filtered = filter (isJust . snd) maybeList
+          unwrapped = map (\(a,Just (b,c)) -> (a,b,c)) filtered
+
+-- Now we lift the generators (legal moves) from the sticker-based data-type to the cube-based one
+cubieMoveUp :: CubieMap () s -> Int -> CubieMap () s
+cubieMoveUp cube@(CubieMap size _) slice = buildStdCubieMap . (flip applyPerm (upMove size slice)) . cubiesToCube $ cube

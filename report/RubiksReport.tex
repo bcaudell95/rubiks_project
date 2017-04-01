@@ -402,4 +402,43 @@ From this, we can calculate the cardinality of $\mathcal{R}_3$ as \begin{align*}
 &\approx 4.3252003 \cdot 10^{19}
 \end{align*}
 or about 43 quintillion.
+
+\chapter{Larger Rubik's Cubes}
+With a derivation for $|\mathcal{R}_3|$ under our belts, we now turn to other-sized cubes.  We have defined a general group structure for $\mathcal{A}_n$ for any \textit{odd} $n$, so the logical next step is to  calculate $\mathcal{A}_n$ for odd $n$ as well.  We will do this through an inductive argument in the general case.  Once we have arrived at a general group structure for the odd case, we will move on to the even case.
+
+\section{Odd-Sized Cubes}
+\subsection{Re-writing the Assembly Group}
+As said before, for odd $n$,
+\begin{align*}
+\mathcal{A}_n \cong 
+(C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12}) \times \Big( \bigotimes_{i=1}^{\frac{n-3}{2}}\mathfrak{S}_{24} \Big) \times \Big( \bigotimes_{i=1}^{\frac{(n-3)(n-1)}{4}}\mathfrak{S}_{24} \Big)
+\end{align*}
+These components reflect, respectively, the corner cubie positions and orientations, the midpoint-edge cubie positions and orientations, the positions of all other edge cubies grouped by sub-type (from which orientation is induced), and the positions for all the other centers (also grouped by sub-type).  The first two of these components will never change for any odd value of $n$.  The final two, however, will grow larger as $n$ does. \\
+
+Because of how segmented $\mathcal{A}_n$ is, we are able to express $\mathcal{A}_{n+2}$ in terms of $\mathcal{A}_n$.  We need only determine the number of new sub-types of edges and centers that are gained in ``growing'' a larger cube in this way.  The edges are straightforward, as growing a cube by 2 will add exactly one new edge sub-type.  All of the newly-created edge cubies can be permuted amongst themselves in the reassembly group.  \\
+
+The newly-created centers are slightly harder, but not radically so.  Consider that when going from a cube of order $n$ to one of order $n+2$, each face will gain $(n-2)^2 - (n-4)^2$ new center cubies in a ``square-ring'' around the old centers.  Because the orbits of the old cubies in the assembly group will not change in the grown cube, we know that all the newly-created centers lie in some number of newly-created sub-types.  I.e there is no way in the reassembly group to permute a new center with an old one.  We also have seen that every face on a cube contains exactly four representatives from each center sub-type.  From this, we can compute the number of new center sub-types as
+\begin{align*}
+\frac{(n-2)^2 - (n-4)^2}{4}
+&= \frac{n^2 - 4n + 4 - n^2 + 8n - 16}{4} \\
+&= \frac{4n -12}{4} \\
+&= n - 3
+\end{align*}
+
+From these facts, we can recursively define $\mathcal{A}_n$ for odd $n$ by
+\begin{align*}
+\mathcal{A}_3 &\cong (C_3 \wr \mathfrak{S}_8) \times (C_2 \wr \mathfrak{S}_{12}) \\
+\mathcal{A}_{n+2} &\cong \mathcal{A}_n \times \mathfrak{S}_{24} \times \Big( \prod_{i=1}^{n-3} \mathfrak{S}_{24} \Big)
+\end{align*}
+In fact, this recursive formula will actually work for the even case as well, with some modifications.  We will look at this more in-depth later.
+
+\subsection{The Rubik Group}
+With this recursive representation, we can now similarly ``grow'' the Rubik group recursively.  We need only consider our freedom to permute the newly-created edges and centers.  Because neither cubie type has orientation (due to the edge sub-types being restricted on orientation), our work is simplified.  We will first show that any permutation of the newly-created edges is solvable. \\
+
+We will construct a move sequence that can transpose two newly-created edge cubies that lie on the same edge segment.  As with before, we can then conjugate this move sequence by any legal Rubik move we desire to transpose any arbitrary pair of new edge cubies.  Again, it is worth reiterating here that the orientation of these new edge cubies is fixed even in the reassembly group because of the pieces' asymmetric shape.  There is no way in either group to flip in-place a single edge cubie unless said cubie lies on the midpoint of the edge (which is not the case here).  With that in mind, consider the following algorithm
+
+\begin{verbatim}
+Edge Parity Algorithm (demonstrated on 5-cube, but applicable to any size)
+
+\end{verbatim}
 \end{document}

@@ -1,0 +1,18 @@
+<head>
+      <title>My A-Frame Scene</title>
+        <script src="https://aframe.io/releases/0.3.0/aframe.min.js"></script>
+          <script src="https://rawgit.com/ngokevin/aframe-animation-component/master/dist/aframe-animation-component.min.js"></script>
+</head>
+
+<body>
+      <a-scene>
+              <a-cylinder color="#F55" radius="0.1"
+                                                       animation="property: color; dir: alternate; dur: 1000;
+                                                                                  easing: easeInSine; loop: true; to: #5F5"
+                                                                       animation__scale="property: scale; dir: alternate; dur: 200;
+                                                                                                  easing: easeInSine; loop: true; to: 1.2 1 1.2"
+                                                                                       animation__yoyo="property: position; dir: alternate; dur: 1000;
+                                                                                                                        easing: easeInSine; loop: true; to: 0 2 0">
+                      </a-cylinder>
+                        </a-scene>
+</body>

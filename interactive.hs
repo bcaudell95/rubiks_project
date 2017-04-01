@@ -2,6 +2,7 @@ module RubiksInteractive where
 import RubiksAFrame hiding (main) 
 import Rubiks
 import Cubie
+import Display
 
 import Data.Maybe
 import Data.List
@@ -104,7 +105,7 @@ mainLoop cube@(Cube size _) = do
 
 main :: IO ()
 main = do
-    start <- randomCube 3
+    start <- randomCube 4
     mainLoop start
 
 

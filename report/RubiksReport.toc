@@ -18,3 +18,7 @@
 \contentsline {subsubsection}{Orient Edges}{15}
 \contentsline {subsubsection}{Orient Corners}{16}
 \contentsline {subsection}{\numberline {2.3.5}Cardinality of the Rubiks Group}{17}
+\contentsline {chapter}{\numberline {3}Larger Rubik's Cubes}{19}
+\contentsline {section}{\numberline {3.1}Odd-Sized Cubes}{19}
+\contentsline {subsection}{\numberline {3.1.1}Re-writing the Assembly Group}{19}
+\contentsline {subsection}{\numberline {3.1.2}The Rubik Group}{20}
