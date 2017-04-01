@@ -106,6 +106,8 @@ getCornersFor c@(CubieMap size func) = (fmap (\(a,_,f) -> (a, stickersOnCubie f)
           unwrapped = map (\(a,Just (b,c)) -> (a,b,c)) filtered
 
 -- Now we lift the generators (legal moves) from the sticker-based data-type to the cube-based one
+type CubiePermutationFunc s = CubieMap () s -> CubieMap () s
+
 cubieMove :: (CubeSize -> Int -> PermutationFunc) -> CubieMap () s -> Int -> CubieMap () s
 cubieMove func cube@(CubieMap size _) slice = buildStdCubieMap . (flip applyPerm (func size slice)) . cubiesToCube $ cube
 
@@ -127,3 +129,14 @@ cubieMoveRight = cubieMove rightMove
 cubieMoveDown :: CubieMap () s -> Int -> CubieMap () s
 cubieMoveDown = cubieMove downMove 
 
+cubieMoveX :: CubiePermutationFunc s
+cubieMoveX = (flip $ cubieMove (flip $ const xRotation)) 0
+
+cubieMoveY :: CubiePermutationFunc s
+cubieMoveY = (flip $ cubieMove (flip $ const yRotation)) 0
+
+cubieMoveZ :: CubiePermutationFunc s
+cubieMoveZ = (flip $ cubieMove (flip $ const zRotation)) 0
+
+reverseCubieMove :: CubiePermutationFunc s -> CubiePermutationFunc s
+reverseCubieMove func = func . func . func
