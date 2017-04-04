@@ -15,8 +15,8 @@ import System.Console.Readline
 --      R / R0      -> clockwise right-face turn
 --      R' / R'0    -> counter-clockwise right-face turn
 --      R1 / R'1    -> turns in either direction of the slice one-layer in from the right face (direction relative to right face)
-parseMove :: CubeSize -> String -> Maybe PermutationFunc
-parseMove size text = do
+parseMove :: String -> Maybe (CubiePermutationFunc s)
+parseMove text = do
     category <- moveCategory $ head text 
     let afterCategory = tail text
 
@@ -25,24 +25,28 @@ parseMove size text = do
 
     let idx = if null afterReverse then 0 else (read afterReverse) :: Int
 
-    let move = category size idx
-    return $ if shouldReverse then reverseMove move else move
+    let move = category idx
+    return $ if shouldReverse then reverseCubieMove move else move
 
-moveCategory :: Char -> Maybe (CubeSize -> Int -> PermutationFunc)
-moveCategory 'R' = Just rightMove
-moveCategory 'L' = Just leftMove
-moveCategory 'U' = Just upMove
-moveCategory 'D' = Just downMove
-moveCategory 'F' = Just frontMove
-moveCategory 'B' = Just backMove
-moveCategory 'X' = Just $ const . xRotation 
-moveCategory 'Y' = Just $ const . yRotation
-moveCategory 'Z' = Just $ const . zRotation
+moveCategory :: Char -> Maybe (Int -> CubiePermutationFunc s)
+moveCategory 'R' = Just $ flip cubieMoveRight
+moveCategory 'L' = Just $ flip cubieMoveLeft 
+moveCategory 'U' = Just $ flip cubieMoveUp
+moveCategory 'D' = Just $ flip cubieMoveDown
+moveCategory 'F' = Just $ flip cubieMoveFront
+moveCategory 'B' = Just $ flip cubieMoveBack
+moveCategory 'X' = Just $ const $ cubieMoveX 
+moveCategory 'Y' = Just $ const $ cubieMoveY
+moveCategory 'Z' = Just $ const $ cubieMoveZ
 moveCategory _ = Nothing
 
 -- Uses the above function to apply a user-written sequence of moves to a cube
+-- This fold trick taken from Michael Kohl at http://stackoverflow.com/questions/4342013/the-composition-of-functions-in-a-list-of-functions
 parseAndApply :: IndexedCube -> String -> IndexedCube
-parseAndApply cube@(Cube size _) moves = applyPerms cube $ map (fromJust . (parseMove size)) $ words moves
+parseAndApply cube@(Cube size _) moves = cubiesToCube newCubieMap 
+    where newCubieMap   = cubiePermFunc oldCubieMap
+          cubiePermFunc = foldl (flip (.)) id $ map (fromJust . parseMove) $ words moves 
+          oldCubieMap   = buildStdCubieMap cube
 
 -- Takes a starting cube and a sequence of commands and translates it into a RawAnimationCubieMap
 buildRawAnimationCubieMap :: IndexedCube -> String -> RawAnimationCubieMap StickerId 
@@ -75,6 +79,53 @@ rawAnimationCategory size 'F' x y z slice = if (slice < size) && ((xyRangeForSiz
 rawAnimationCategory size 'X' _ _ _ _ = Just (AxisX, Backwards)
 rawAnimationCategory size 'Y' _ _ _ _ = Just (AxisY, Backwards)
 rawAnimationCategory size 'Z' _ _ _ _ = Just (AxisZ, Backwards)
+
+--
+-- Second attempt at proper animation, using cubie movement
+--
+
+-- There is a subset of cubies such that at least one must be moved in every possible move
+-- We form such a subset and will check each one to figure out which move occurred for the sake of animation
+type SignalCubie = (CubieX, CubieY, CubieZ)
+
+listOfSignalCubies :: CubeSize -> [(SignalCubie, SignalCubie, SignalCubie)]
+listOfSignalCubies size = [((k,k,i), (k,i,k), (i,k,k)) | i <- xyRangeForSize size]
+    where k = size `div` 2
+
+-- We now look at a tuple of three of those, and check if a specific expected move occurred
+checkSignalCubieTuple :: (Eq s) => CubieMap c s -> CubieMap c s -> (SignalCubie, SignalCubie, SignalCubie) -> Maybe (AnimAxis, AnimDir, Int)
+checkSignalCubieTuple before@(CubieMap size _) after ((x1, y1, z1), (x2, y2, z2), (x3, y3, z3))
+    | (fromJust $ lookupStickerValue before (x1, y1, z1, DirUp))    == (fromJust $ lookupStickerValue after ((-1)*x1, y1, z1, DirLeft))    = Just (AxisZ, Forwards,  z1) 
+    | (fromJust $ lookupStickerValue before (x1, y1, z1, DirUp))    == (fromJust $ lookupStickerValue after (x1, (-1)*y1, z1, DirRight))   = Just (AxisZ, Backwards, z1) 
+    | (fromJust $ lookupStickerValue before (x2, y2, z2, DirBack))  == (fromJust $ lookupStickerValue after (x2, y2, (-1)*z2, DirRight))   = Just (AxisY, Forwards,  y2) 
+    | (fromJust $ lookupStickerValue before (x2, y2, z2, DirBack))  == (fromJust $ lookupStickerValue after ((-1)*x2, y2, z2, DirLeft))    = Just (AxisY, Backwards, y2) 
+    | (fromJust $ lookupStickerValue before (x3, y3, z3, DirUp))    == (fromJust $ lookupStickerValue after (x3, (-1)*y3, z3, DirBack))    = Just (AxisX, Forwards,  x3) 
+    | (fromJust $ lookupStickerValue before (x3, y3, z3, DirUp))    == (fromJust $ lookupStickerValue after (x3, y3, (-1)*z3, DirFront))   = Just (AxisX, Backwards, x3) 
+    | otherwise = Nothing
+    where k = size `div` 2 
+
+getAnimationForPermutation :: (Eq s) => CubiePermutationFunc s -> CubieMap c s -> Maybe (AnimAxis, AnimDir, Int)
+getAnimationForPermutation perm cube@(CubieMap size _) = foldl foldFunc Nothing reducedCheck  
+    where signals = listOfSignalCubies size
+          checkedSignals = map (mapOverUniformThreeTuple (checkSignalCubieTuple cube (perm cube))) signals
+          reducedCheck   = map chooseMaybeFromThreeTuple checkedSignals
+          foldFunc = (\a b -> if isJust a then a else b)
+
+mapOverUniformThreeTuple :: (a -> b) -> (a,a,a) -> (b,b,b)
+mapOverUniformThreeTuple func (x,y,z) = (func x, func y, func z)
+
+chooseMaybeFromThreeTuple :: (Maybe a, Maybe a, Maybe a) -> Maybe a
+chooseMaybeFromThreeTuple (x,y,z) = if isJust x then x else (if isJust y then y else z)
+
+buildAnimationStepCubeFunc :: (Eq s) => CubiePermutationFunc s -> CubieMap c s -> CubieMap (Maybe (AnimAxis, AnimDir)) s
+buildAnimationStepCubeFunc perm cube@(CubieMap size func) = CubieMap size newFunc
+    where newFunc = (\x -> (\y -> (\z -> ((singleCubieAnimation $ getAnimationForPermutation perm cube) x y z, func x y z))))
+
+singleCubieAnimation :: Maybe (AnimAxis, AnimDir, Int) -> CubieX -> CubieY -> CubieZ -> Maybe (AnimAxis, AnimDir)
+singleCubieAnimation (Just (AxisX, dir, target)) x _ _  = if x == target then Just (AxisX, dir) else Nothing
+singleCubieAnimation (Just (AxisY, dir, target)) _ y _  = if y == target then Just (AxisY, dir) else Nothing
+singleCubieAnimation (Just (AxisZ, dir, target)) _ _ z  = if z == target then Just (AxisZ, dir) else Nothing
+singleCubieAnimation Nothing _ _ _                      = Nothing 
 
 -- Writes the AFrame output to a file and displays in a web browser pop-up
 showCubeAFrame :: RawAnimationCubieMap StickerId -> IO ()

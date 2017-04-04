@@ -1,9 +1,10 @@
-{-# LANGUAGE GADTs, DatatypeContexts #-}
+{-# LANGUAGE GADTs #-}
 
 module Cubie where
 import Rubiks
 import Data.Maybe (fromJust, isJust)
 import Control.Applicative (liftA2)
+import Data.List (sort)
 
 -- A Cubie is a small cube-shaped plastic piece on a Rubik's Cube.  On the standard 3x3 Cube, there
 --      are 26 total cubies.  They can be center cubies (with one sticker), edges (with two
@@ -32,6 +33,16 @@ data CubieMap c s where
 
 instance (Show c, Show s) => Show (CubieMap c s) where
     show = show . (fmap (\(_,_,f) -> stickersOnCubie f)) . listCubies
+
+lookupStickerValue :: CubieMap c s -> (CubieX, CubieY, CubieZ, ThreeDimensionalDir) -> Maybe s
+lookupStickerValue (CubieMap size func) (x,y,z,d) = do
+    (_, stickerFunc) <- func x y z
+    stickerFunc d
+
+lookupCubieValue :: CubieMap c s -> (CubieX, CubieY, CubieZ) -> Maybe c
+lookupCubieValue (CubieMap size func) (x,y,z) = do
+    (val, _) <- func x y z
+    return val
 
 stickersOnCubie :: CubieStickerFunc s -> [Maybe s]
 stickersOnCubie func = [func] <*> [DirUp, DirFront, DirLeft, DirBack, DirRight, DirDown]
@@ -140,3 +151,35 @@ cubieMoveZ = (flip $ cubieMove (flip $ const zRotation)) 0
 
 reverseCubieMove :: CubiePermutationFunc s -> CubiePermutationFunc s
 reverseCubieMove func = func . func . func
+
+removeCubieData :: CubieMap c s -> CubieMap () s
+removeCubieData = mapOverCubies $ const ()
+
+-- In order to figure out where different cubies move during permutation without rewriting my sticker
+--  permutation code, we will track the stickers on a cubie before and after permutation
+idCubiesByStickers :: (Ord s) => CubieMap c s -> CubieMap [s] s
+idCubiesByStickers cube@(CubieMap size func) = CubieMap size $ cubieLabelingFunction cube
+
+cubieLabelingFunction :: (Ord s) => CubieMap c s -> CubieComboFunc [s] s
+cubieLabelingFunction cube@(CubieMap size func) x y z = oldCubieVal >>= (return . extractStickerData . filterMapSort . stickersOnCubie . snd)
+    where oldCubieVal = func x y z 
+          filterMapSort = sort . (map fromJust) . (filter isJust)
+          extractStickerData = flip (,) $ snd . fromJust $ oldCubieVal
+
+findCubie :: (Eq c) => CubieMap c s -> c -> (CubieX, CubieY, CubieZ)
+findCubie cube@(CubieMap size func) target = fst $ head $ filter (\(pos, val) -> target == val) $ list 
+    where list = map (\(pos, val, _) -> (pos, val)) $ listCubies cube
+    
+labelCubiesWithNextPositions :: (Ord s) => CubieMap c s -> CubiePermutationFunc s -> CubieMap (CubieX, CubieY, CubieZ) s
+labelCubiesWithNextPositions cube@(CubieMap size func) perm = mapOverCubies (findCubie $ idCubiesByStickers $ perm $ removeCubieData cube) $ idCubiesByStickers cube
+
+-- Utility function to merge two CubieMaps with the same sticker data and different cubie data
+zipCubieMaps :: CubieMap c1 s -> CubieMap c2 s -> CubieMap (c1, c2) s
+zipCubieMaps c1@(CubieMap size1 func1) c2@(CubieMap size2 func2)
+    | size1 == size2    = CubieMap size1 newFunc
+    | otherwise         = error "mismatched cube sizes"
+        where newFunc   = (\x -> (\y -> (\z -> zipTuples <$> func1 x y z <*> func2 x y z)))
+
+-- Makes no assumptions about the equality of the second components, just takes the first
+zipTuples :: (c1, s) -> (c2, s) -> ((c1, c2), s)
+zipTuples (a,b) (c,_) = ((a,c),b)
