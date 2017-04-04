@@ -104,22 +104,18 @@ checkSignalCubieTuple before@(CubieMap size _) after ((x1, y1, z1), (x2, y2, z2)
     | otherwise = Nothing
     where k = size `div` 2 
 
-getAnimationForPermutation :: (Eq s) => CubiePermutationFunc s -> CubieMap c s -> Maybe (AnimAxis, AnimDir, Int)
-getAnimationForPermutation perm cube@(CubieMap size _) = foldl foldFunc Nothing reducedCheck  
+getAnimationForPermutation :: (Eq s) => CubiePermutationFunc s -> CubieMap () s -> Maybe (AnimAxis, AnimDir, Int)
+getAnimationForPermutation perm cube@(CubieMap size _) = foldl foldFunc Nothing checkedSignals
     where signals = listOfSignalCubies size
-          checkedSignals = map (mapOverUniformThreeTuple (checkSignalCubieTuple cube (perm cube))) signals
-          reducedCheck   = map chooseMaybeFromThreeTuple checkedSignals
+          checkedSignals = map (checkSignalCubieTuple cube (perm cube)) signals
           foldFunc = (\a b -> if isJust a then a else b)
 
 mapOverUniformThreeTuple :: (a -> b) -> (a,a,a) -> (b,b,b)
 mapOverUniformThreeTuple func (x,y,z) = (func x, func y, func z)
 
-chooseMaybeFromThreeTuple :: (Maybe a, Maybe a, Maybe a) -> Maybe a
-chooseMaybeFromThreeTuple (x,y,z) = if isJust x then x else (if isJust y then y else z)
-
-buildAnimationStepCubeFunc :: (Eq s) => CubiePermutationFunc s -> CubieMap c s -> CubieMap (Maybe (AnimAxis, AnimDir)) s
+buildAnimationStepCubeFunc :: (Eq s) => CubiePermutationFunc s -> CubieMap () s -> CubieMap (Maybe (AnimAxis, AnimDir)) s
 buildAnimationStepCubeFunc perm cube@(CubieMap size func) = CubieMap size newFunc
-    where newFunc = (\x -> (\y -> (\z -> ((singleCubieAnimation $ getAnimationForPermutation perm cube) x y z, func x y z))))
+    where newFunc = (\x -> (\y -> (\z -> (func x y z) >>= (\(_, stickers) -> Just $ ((singleCubieAnimation $ getAnimationForPermutation perm cube) x y z, stickers)))))
 
 singleCubieAnimation :: Maybe (AnimAxis, AnimDir, Int) -> CubieX -> CubieY -> CubieZ -> Maybe (AnimAxis, AnimDir)
 singleCubieAnimation (Just (AxisX, dir, target)) x _ _  = if x == target then Just (AxisX, dir) else Nothing
