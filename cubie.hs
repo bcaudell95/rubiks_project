@@ -47,6 +47,12 @@ lookupCubieValue (CubieMap size func) (x,y,z) = do
 stickersOnCubie :: CubieStickerFunc s -> [Maybe s]
 stickersOnCubie func = [func] <*> [DirUp, DirFront, DirLeft, DirBack, DirRight, DirDown]
 
+locateCubieValue :: (Eq c) => CubieMap c s -> c -> Maybe (CubieX, CubieY, CubieZ)
+locateCubieValue cube@(CubieMap size _) target = if null filtered then Nothing else (\(x,y,z,_) -> Just (x,y,z)) $ head filtered
+    where range = xyRangeForSize size
+          cubieVals = [(x,y,z, (lookupCubieValue cube (x,y,z)) == Just target) | x <- range, y <- range, z <- range]
+          filtered = filter (\(_,_,_,b) -> b) cubieVals
+
 --Pseudo-Functor abilities that map over the cubie values and the sticker values
 mapOverCubies :: (c1 -> c2) -> CubieMap c1 s -> CubieMap c2 s
 mapOverCubies f (CubieMap size f1) = CubieMap size (\x y z -> fmap (\(a,b) -> (f a, b)) $ f1 x y z)
@@ -183,3 +189,10 @@ zipCubieMaps c1@(CubieMap size1 func1) c2@(CubieMap size2 func2)
 -- Makes no assumptions about the equality of the second components, just takes the first
 zipTuples :: (c1, s) -> (c2, s) -> ((c1, c2), s)
 zipTuples (a,b) (c,_) = ((a,c),b)
+
+-- Figure out where a cubie is moved to in a permutation function.  Note that we do not look at its rotation!
+nextCubieLocation :: (Ord s) => CubieMap () s -> CubiePermutationFunc s -> (CubieX, CubieY, CubieZ) -> (CubieX, CubieY, CubieZ)
+nextCubieLocation cube@(CubieMap size _) perm (x,y,z) = fromJust $ locateCubieValue labeledNextCube stickerList 
+    where labeledCube = idCubiesByStickers cube
+          labeledNextCube = idCubiesByStickers $ perm cube
+          stickerList = fromJust $ lookupCubieValue labeledCube (x,y,z)

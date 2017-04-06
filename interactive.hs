@@ -50,8 +50,8 @@ parseAndApply cube@(Cube size _) moves = cubiesToCube newCubieMap
 
 -- Takes a starting cube and a sequence of commands and translates it into a RawAnimationCubieMap
 buildRawAnimationCubieMap :: IndexedCube -> String -> RawAnimationCubieMap StickerId 
-buildRawAnimationCubieMap c@(Cube size func) command = buildCubieMap c animFunc
-    where animFunc = getRawAnimationSequence size $ words command
+buildRawAnimationCubieMap cube command = buildAnimationSequenceCubeFunc listOfPerms $ buildStdCubieMap cube
+    where listOfPerms = map (fromJust . parseMove) $ words command 
 
 -- Parses a sequence of commands into a sequence of raw animations
 getRawAnimationSequence :: CubeSize -> [String] -> CubieX -> CubieY -> CubieZ -> [Maybe (AnimAxis, AnimDir)]
@@ -113,15 +113,31 @@ getAnimationForPermutation perm cube@(CubieMap size _) = foldl foldFunc Nothing 
 mapOverUniformThreeTuple :: (a -> b) -> (a,a,a) -> (b,b,b)
 mapOverUniformThreeTuple func (x,y,z) = (func x, func y, func z)
 
-buildAnimationStepCubeFunc :: (Eq s) => CubiePermutationFunc s -> CubieMap () s -> CubieMap (Maybe (AnimAxis, AnimDir)) s
-buildAnimationStepCubeFunc perm cube@(CubieMap size func) = CubieMap size newFunc
-    where newFunc = (\x -> (\y -> (\z -> (func x y z) >>= (\(_, stickers) -> Just $ ((singleCubieAnimation $ getAnimationForPermutation perm cube) x y z, stickers)))))
-
 singleCubieAnimation :: Maybe (AnimAxis, AnimDir, Int) -> CubieX -> CubieY -> CubieZ -> Maybe (AnimAxis, AnimDir)
 singleCubieAnimation (Just (AxisX, dir, target)) x _ _  = if x == target then Just (AxisX, dir) else Nothing
 singleCubieAnimation (Just (AxisY, dir, target)) _ y _  = if y == target then Just (AxisY, dir) else Nothing
 singleCubieAnimation (Just (AxisZ, dir, target)) _ _ z  = if z == target then Just (AxisZ, dir) else Nothing
 singleCubieAnimation Nothing _ _ _                      = Nothing 
+
+buildAnimationStepCube :: (Eq s) => CubiePermutationFunc s -> CubieMap () s -> CubieMap (Maybe (AnimAxis, AnimDir)) s
+buildAnimationStepCube perm cube@(CubieMap size func) = CubieMap size newFunc
+    where newFunc = (\x -> (\y -> (\z -> (func x y z) >>= (\(_, stickers) -> Just $ ((singleCubieAnimation $ getAnimationForPermutation perm cube) x y z, stickers)))))
+
+-- Now we need to take a sequence of permutatino functions and translate them into a sequence of animations on the cubies
+buildAnimationSequenceCubeFunc :: (Ord s) => [CubiePermutationFunc s] -> CubieMap () s -> RawAnimationCubieMap s
+buildAnimationSequenceCubeFunc perms cube@(CubieMap size origFunc) = CubieMap size outputFunc
+    where outputFunc = (\x -> (\y -> (\z -> (origFunc x y z) >>= (\(_, stickers) -> Just (animFunc x y z, stickers)))))
+          animFunc = animationSequenceCubieFunc perms cube 
+
+animationSequenceCubieFunc :: (Ord s) => [CubiePermutationFunc s] -> CubieMap () s -> CubieX -> CubieY -> CubieZ -> [Maybe (AnimAxis, AnimDir)]
+animationSequenceCubieFunc [] _ _ _ _           = []
+animationSequenceCubieFunc (p:rest) cube x y z  = ((animFunc x y z) >>= (fst)) : (animationSequenceCubieFunc rest (p cube) x' y' z') 
+    where (CubieMap _ animFunc)             = buildAnimationStepCube p cube
+          (x', y', z')                      = nextCubieLocation cube p (x,y,z)
+
+buildSequenceOfCubes :: (Eq s) => [CubiePermutationFunc s] -> CubieMap () s -> [CubieMap () s]
+buildSequenceOfCubes [] cube = [cube]
+buildSequenceOfCubes (p:rest) cube = (cube:(buildSequenceOfCubes rest (p cube)))
 
 -- Writes the AFrame output to a file and displays in a web browser pop-up
 showCubeAFrame :: RawAnimationCubieMap StickerId -> IO ()
