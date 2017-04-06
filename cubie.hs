@@ -191,8 +191,11 @@ zipTuples :: (c1, s) -> (c2, s) -> ((c1, c2), s)
 zipTuples (a,b) (c,_) = ((a,c),b)
 
 -- Figure out where a cubie is moved to in a permutation function.  Note that we do not look at its rotation!
+-- Note that there are always only 7 possible locations that a cubie can move to via a *single* legal move.
+-- It can either stay in place, or move around any of the three axes in either direction
 nextCubieLocation :: (Ord s) => CubieMap () s -> CubiePermutationFunc s -> (CubieX, CubieY, CubieZ) -> (CubieX, CubieY, CubieZ)
-nextCubieLocation cube@(CubieMap size _) perm (x,y,z) = fromJust $ locateCubieValue labeledNextCube stickerList 
+nextCubieLocation cube@(CubieMap size _) perm (x,y,z) = fst $ head $ filter ((== (Just stickerList)) . snd) $ zip potentialNextLocations $ map (lookupCubieValue labeledNextCube) potentialNextLocations
     where labeledCube = idCubiesByStickers cube
           labeledNextCube = idCubiesByStickers $ perm cube
           stickerList = fromJust $ lookupCubieValue labeledCube (x,y,z)
+          potentialNextLocations = [(x,y,z), (z,y,(-1)*x), ((-1)*z,y,x), (x,(-1)*z,y), (x,z,(-1)*y), ((-1)*y,x,z), (y,(-1)*x,z)]

@@ -53,37 +53,6 @@ buildRawAnimationCubieMap :: IndexedCube -> String -> RawAnimationCubieMap Stick
 buildRawAnimationCubieMap cube command = buildAnimationSequenceCubeFunc listOfPerms $ buildStdCubieMap cube
     where listOfPerms = map (fromJust . parseMove) $ words command 
 
--- Parses a sequence of commands into a sequence of raw animations
-getRawAnimationSequence :: CubeSize -> [String] -> CubieX -> CubieY -> CubieZ -> [Maybe (AnimAxis, AnimDir)]
-getRawAnimationSequence size commands x y z = fmap (\comm -> getSingleRawAnimation size comm x y z) commands
-
--- Parses a single user input, but this time turns it into a Cubie function denoting a possible raw animation move
-getSingleRawAnimation :: CubeSize -> String -> CubieX -> CubieY -> CubieZ -> Maybe (AnimAxis, AnimDir)
-getSingleRawAnimation size command x y z = do
-    let (firstChar, afterFirst) = (head command, tail command) 
-    let shouldReverse = (not $ null afterFirst) && (head afterFirst) == '\''
-    let afterReverse = if shouldReverse then tail afterFirst else afterFirst
-    let slice = if null afterReverse then 0 else (read afterReverse) :: Int
-   
-    foo@(axis, dir) <- rawAnimationCategory size firstChar x y z slice
-    if shouldReverse then return (axis, reverseAnimDir dir) else return foo
-    
-    
-rawAnimationCategory :: CubeSize -> Char -> CubieX -> CubieY -> CubieZ -> Int -> Maybe (AnimAxis, AnimDir)
-rawAnimationCategory size 'R' x y z slice = if (slice < size) && ((xyRangeForSize size) !! ((size - 1) - slice)) == x then Just (AxisX, Backwards) else Nothing
-rawAnimationCategory size 'L' x y z slice = if (slice < size) && ((xyRangeForSize size) !! slice) == x                then Just (AxisX, Forwards)  else Nothing
-rawAnimationCategory size 'U' x y z slice = if (slice < size) && ((xyRangeForSize size) !! ((size - 1) - slice)) == y then Just (AxisY, Backwards) else Nothing
-rawAnimationCategory size 'D' x y z slice = if (slice < size) && ((xyRangeForSize size) !! slice) == y                then Just (AxisY, Forwards)  else Nothing
-rawAnimationCategory size 'B' x y z slice = if (slice < size) && ((xyRangeForSize size) !! ((size - 1) - slice)) == z then Just (AxisZ, Forwards)  else Nothing
-rawAnimationCategory size 'F' x y z slice = if (slice < size) && ((xyRangeForSize size) !! slice) == z                then Just (AxisZ, Backwards) else Nothing
-rawAnimationCategory size 'X' _ _ _ _ = Just (AxisX, Backwards)
-rawAnimationCategory size 'Y' _ _ _ _ = Just (AxisY, Backwards)
-rawAnimationCategory size 'Z' _ _ _ _ = Just (AxisZ, Backwards)
-
---
--- Second attempt at proper animation, using cubie movement
---
-
 -- There is a subset of cubies such that at least one must be moved in every possible move
 -- We form such a subset and will check each one to figure out which move occurred for the sake of animation
 type SignalCubie = (CubieX, CubieY, CubieZ)
@@ -164,7 +133,7 @@ mainLoop cube@(Cube size _) = do
 
 main :: IO ()
 main = do
-    start <- randomCube 3
+    start <- randomCube 7
     mainLoop start
 
 
