@@ -95,12 +95,12 @@ listOfSignalCubies size = [((k,k,i), (k,i,k), (i,k,k)) | i <- xyRangeForSize siz
 -- We now look at a tuple of three of those, and check if a specific expected move occurred
 checkSignalCubieTuple :: (Eq s) => CubieMap c s -> CubieMap c s -> (SignalCubie, SignalCubie, SignalCubie) -> Maybe (AnimAxis, AnimDir, Int)
 checkSignalCubieTuple before@(CubieMap size _) after ((x1, y1, z1), (x2, y2, z2), (x3, y3, z3))
-    | (fromJust $ lookupStickerValue before (x1, y1, z1, DirUp))    == (fromJust $ lookupStickerValue after ((-1)*x1, y1, z1, DirLeft))    = Just (AxisZ, Forwards,  z1) 
-    | (fromJust $ lookupStickerValue before (x1, y1, z1, DirUp))    == (fromJust $ lookupStickerValue after (x1, (-1)*y1, z1, DirRight))   = Just (AxisZ, Backwards, z1) 
-    | (fromJust $ lookupStickerValue before (x2, y2, z2, DirBack))  == (fromJust $ lookupStickerValue after (x2, y2, (-1)*z2, DirRight))   = Just (AxisY, Forwards,  y2) 
-    | (fromJust $ lookupStickerValue before (x2, y2, z2, DirBack))  == (fromJust $ lookupStickerValue after ((-1)*x2, y2, z2, DirLeft))    = Just (AxisY, Backwards, y2) 
-    | (fromJust $ lookupStickerValue before (x3, y3, z3, DirUp))    == (fromJust $ lookupStickerValue after (x3, (-1)*y3, z3, DirBack))    = Just (AxisX, Forwards,  x3) 
-    | (fromJust $ lookupStickerValue before (x3, y3, z3, DirUp))    == (fromJust $ lookupStickerValue after (x3, y3, (-1)*z3, DirFront))   = Just (AxisX, Backwards, x3) 
+    | (fromJust $ lookupStickerValue before (x1, y1, z1, DirUp))    == (fromJust $ lookupStickerValue after ((-1)*x1, y1, z1, DirLeft))    = Just (AxisZ, Backwards,  z1) 
+    | (fromJust $ lookupStickerValue before (x1, y1, z1, DirUp))    == (fromJust $ lookupStickerValue after (x1, (-1)*y1, z1, DirRight))   = Just (AxisZ, Forwards, z1) 
+    | (fromJust $ lookupStickerValue before (x2, y2, z2, DirBack))  == (fromJust $ lookupStickerValue after (x2, y2, (-1)*z2, DirRight))   = Just (AxisY, Backwards,  y2) 
+    | (fromJust $ lookupStickerValue before (x2, y2, z2, DirBack))  == (fromJust $ lookupStickerValue after ((-1)*x2, y2, z2, DirLeft))    = Just (AxisY, Forwards, y2) 
+    | (fromJust $ lookupStickerValue before (x3, y3, z3, DirUp))    == (fromJust $ lookupStickerValue after (x3, (-1)*y3, z3, DirBack))    = Just (AxisX, Backwards,  x3) 
+    | (fromJust $ lookupStickerValue before (x3, y3, z3, DirUp))    == (fromJust $ lookupStickerValue after (x3, y3, (-1)*z3, DirFront))   = Just (AxisX, Forwards, x3) 
     | otherwise = Nothing
     where k = size `div` 2 
 
@@ -135,10 +135,6 @@ animationSequenceCubieFunc (p:rest) cube x y z  = ((animFunc x y z) >>= (fst)) :
     where (CubieMap _ animFunc)             = buildAnimationStepCube p cube
           (x', y', z')                      = nextCubieLocation cube p (x,y,z)
 
-buildSequenceOfCubes :: (Eq s) => [CubiePermutationFunc s] -> CubieMap () s -> [CubieMap () s]
-buildSequenceOfCubes [] cube = [cube]
-buildSequenceOfCubes (p:rest) cube = (cube:(buildSequenceOfCubes rest (p cube)))
-
 -- Writes the AFrame output to a file and displays in a web browser pop-up
 showCubeAFrame :: RawAnimationCubieMap StickerId -> IO ()
 showCubeAFrame cube@(CubieMap size _) = do
@@ -168,7 +164,7 @@ mainLoop cube@(Cube size _) = do
 
 main :: IO ()
 main = do
-    start <- randomCube 4
+    start <- randomCube 3
     mainLoop start
 
 
