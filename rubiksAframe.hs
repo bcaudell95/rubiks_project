@@ -32,9 +32,19 @@ type AnimationCubieMap a = CubieMap [AnimData] a
 -- This type is the unprocessed version of the above data.  All cubies have equivalent-length lists of Maybe (AnimAxis, AnimDir) which will be turned
 --      into an AnimationCubieMap
 data AnimAxis = AxisX | AxisY | AxisZ
+    deriving (Eq)
 data AnimDir = Forwards | Backwards
+    deriving (Eq)
+
+flipAnimDir :: AnimDir -> AnimDir
+flipAnimDir Forwards    = Backwards
+flipAnimDir Backwards   = Forwards
 
 type RawAnimationCubieMap a = CubieMap [Maybe (AnimAxis, AnimDir)] a
+
+-- The "local" axes for cubies change their relationship to the global ones during execution of an animation sequence
+-- this map adjust for that and maps the gloabl axes to local ones, possibly with reversing them if needed
+type AxisMap = AnimAxis -> (Bool, AnimAxis)
 
 animationDuration :: Int
 animationDuration = 2000
@@ -51,14 +61,35 @@ applyAnimationForRotation start (AxisY, Backwards) = start `mappend` (RotationVe
 applyAnimationForRotation start (AxisZ, Forwards)  = start `mappend` (RotationVec (  0,   0,  90))
 applyAnimationForRotation start (AxisZ, Backwards) = start `mappend` (RotationVec (  0,   0, -90))
 
-processAnimationChain :: RotationVec -> [Maybe (AnimAxis, AnimDir)] -> [AnimData]
+invertFirstBool :: (Bool, a) -> (Bool, a)
+invertFirstBool (True, foo)     = (False, foo)
+invertFirstBool (False, foo)    = (True, foo)
+
+adjustAxisMap :: AxisMap -> (AnimAxis, AnimDir) -> AxisMap
+adjustAxisMap old (x, Backwards) y  = if x == y then old x else invertFirstBool $ adjustAxisMap old (x, Forwards) y
+adjustAxisMap old (AxisX, _) AxisX  = old AxisX 
+adjustAxisMap old (AxisX, _) AxisY  = old AxisZ 
+adjustAxisMap old (AxisX, _) AxisZ  = old AxisY
+adjustAxisMap old (AxisY, _) AxisX  = old AxisZ 
+adjustAxisMap old (AxisY, _) AxisY  = old AxisY 
+adjustAxisMap old (AxisY, _) AxisZ  = invertFirstBool $ old AxisX
+adjustAxisMap old (AxisZ, _) AxisX  = old AxisY 
+adjustAxisMap old (AxisZ, _) AxisY  = old AxisX
+adjustAxisMap old (AxisZ, _) AxisZ  = old AxisZ
+
+applyAdjustmentMap :: AxisMap -> (AnimAxis, AnimDir) -> (AnimAxis, AnimDir)
+applyAdjustmentMap map (axis, dir)     = (newAxis, if nonInverted then dir else reverseAnimDir dir)
+    where (nonInverted, newAxis) = map axis
+
+processAnimationChain :: (RotationVec, AxisMap) -> [Maybe (AnimAxis, AnimDir)] -> [AnimData]
 processAnimationChain _ [] = []
-processAnimationChain start (Nothing:as) = ((animationDuration, start, start): processAnimationChain start as)
-processAnimationChain start ((Just rot):as) = ((animationDuration, start, end): processAnimationChain end as) 
-    where end = applyAnimationForRotation start rot
+processAnimationChain start (Nothing:as) = ((animationDuration, fst start, fst start): processAnimationChain start as)
+processAnimationChain (oldRot, oldMap) ((Just rot):as) = ((animationDuration, oldRot, end): processAnimationChain (end, newMap) as) 
+    where end = applyAnimationForRotation oldRot $ applyAdjustmentMap oldMap rot 
+          newMap = adjustAxisMap oldMap rot
 
 processRawAnimationCubieMap :: RawAnimationCubieMap a -> AnimationCubieMap a
-processRawAnimationCubieMap = mapOverCubies (processAnimationChain mempty) 
+processRawAnimationCubieMap = mapOverCubies (processAnimationChain (mempty, (\x -> (True, x)))) 
 
 -- Utility function to map over a uniformly-typed 3-tuple
 mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b)
