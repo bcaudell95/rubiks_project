@@ -3,6 +3,7 @@ import RubiksAFrame hiding (main)
 import Rubiks
 import Cubie
 import Display
+import Octahedral
 
 import Data.Maybe
 import Data.List
@@ -73,19 +74,19 @@ checkSignalCubieTuple before@(CubieMap size _) after ((x1, y1, z1), (x2, y2, z2)
     | otherwise = Nothing
     where k = size `div` 2 
 
-getAnimationForPermutation :: (Eq s) => CubiePermutationFunc s -> CubieMap () s -> Maybe (AnimAxis, AnimDir, Int)
-getAnimationForPermutation perm cube@(CubieMap size _) = foldl foldFunc Nothing checkedSignals
+getAnimationForPermutation :: (Eq s) => CubiePermutationFunc s -> CubieMap () s -> Maybe (AnimAxis, AnimDir, [Int])
+getAnimationForPermutation perm cube@(CubieMap size _) = if (length filtered) == 0 then Nothing else Just $ (\((axis, dir, x):rest) -> (axis, dir, (x:(map (\(_,_,c) -> c) rest)))) filtered 
     where signals = listOfSignalCubies size
           checkedSignals = map (checkSignalCubieTuple cube (perm cube)) signals
-          foldFunc = (\a b -> if isJust a then a else b)
+          filtered = map fromJust $ filter isJust $ checkedSignals
 
 mapOverUniformThreeTuple :: (a -> b) -> (a,a,a) -> (b,b,b)
 mapOverUniformThreeTuple func (x,y,z) = (func x, func y, func z)
 
-singleCubieAnimation :: Maybe (AnimAxis, AnimDir, Int) -> CubieX -> CubieY -> CubieZ -> Maybe (AnimAxis, AnimDir)
-singleCubieAnimation (Just (AxisX, dir, target)) x _ _  = if x == target then Just (AxisX, dir) else Nothing
-singleCubieAnimation (Just (AxisY, dir, target)) _ y _  = if y == target then Just (AxisY, dir) else Nothing
-singleCubieAnimation (Just (AxisZ, dir, target)) _ _ z  = if z == target then Just (AxisZ, dir) else Nothing
+singleCubieAnimation :: Maybe (AnimAxis, AnimDir, [Int]) -> CubieX -> CubieY -> CubieZ -> Maybe (AnimAxis, AnimDir)
+singleCubieAnimation (Just (AxisX, dir, targets)) x _ _  = if x `elem` targets then Just (AxisX, dir) else Nothing
+singleCubieAnimation (Just (AxisY, dir, targets)) _ y _  = if y `elem` targets then Just (AxisY, dir) else Nothing
+singleCubieAnimation (Just (AxisZ, dir, targets)) _ _ z  = if z `elem` targets then Just (AxisZ, dir) else Nothing
 singleCubieAnimation Nothing _ _ _                      = Nothing 
 
 buildAnimationStepCube :: (Eq s) => CubiePermutationFunc s -> CubieMap () s -> CubieMap (Maybe (AnimAxis, AnimDir)) s

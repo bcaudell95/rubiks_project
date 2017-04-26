@@ -2,6 +2,7 @@
 module RubiksAFrame where
 import Rubiks
 import Cubie
+import Octahedral
 
 import Data.String (IsString)
 import Data.Text (Text, pack)
@@ -10,6 +11,7 @@ import Text.AFrame
 import Text.AFrame.WebPage hiding (webPage)
 import Text.AFrame.DSL 
 import Data.Maybe (fromJust, isJust)
+import Data.Group
 
 import System.Environment
 
@@ -31,21 +33,11 @@ type AnimationCubieMap a = CubieMap [AnimData] a
 
 -- This type is the unprocessed version of the above data.  All cubies have equivalent-length lists of Maybe (AnimAxis, AnimDir) which will be turned
 --      into an AnimationCubieMap
-data AnimAxis = AxisX | AxisY | AxisZ
-    deriving (Eq)
-data AnimDir = Forwards | Backwards
-    deriving (Eq)
-
-flipAnimDir :: AnimDir -> AnimDir
-flipAnimDir Forwards    = Backwards
-flipAnimDir Backwards   = Forwards
 
 type RawAnimationCubieMap a = CubieMap [Maybe (AnimAxis, AnimDir)] a
 
 -- The "local" axes for cubies change their relationship to the global ones during execution of an animation sequence
 -- this map adjust for that and maps the gloabl axes to local ones, possibly with reversing them if needed
-type AxisMap = AnimAxis -> (Bool, AnimAxis)
-
 animationDuration :: Int
 animationDuration = 2000
 
@@ -65,31 +57,23 @@ invertFirstBool :: (Bool, a) -> (Bool, a)
 invertFirstBool (True, foo)     = (False, foo)
 invertFirstBool (False, foo)    = (True, foo)
 
-adjustAxisMap :: AxisMap -> (AnimAxis, AnimDir) -> AxisMap
-adjustAxisMap old (x, Backwards) y  = if x == y then old x else invertFirstBool $ adjustAxisMap old (x, Forwards) y
-adjustAxisMap old (AxisX, _) AxisX  = old AxisX 
-adjustAxisMap old (AxisX, _) AxisY  = old AxisZ 
-adjustAxisMap old (AxisX, _) AxisZ  = old AxisY
-adjustAxisMap old (AxisY, _) AxisX  = old AxisZ 
-adjustAxisMap old (AxisY, _) AxisY  = old AxisY 
-adjustAxisMap old (AxisY, _) AxisZ  = invertFirstBool $ old AxisX
-adjustAxisMap old (AxisZ, _) AxisX  = old AxisY 
-adjustAxisMap old (AxisZ, _) AxisY  = old AxisX
-adjustAxisMap old (AxisZ, _) AxisZ  = old AxisZ
+adjustAxisMap :: OctGroup -> (AnimAxis, AnimDir) -> OctGroup
+adjustAxisMap old (AxisX, dir) = mappend old (if dir == Forwards then octRotateX else invert octRotateX) 
+adjustAxisMap old (AxisY, dir) = mappend old (if dir == Forwards then octRotateY else invert octRotateY) 
+adjustAxisMap old (AxisZ, dir) = mappend old (if dir == Forwards then octRotateZ else invert octRotateZ)
 
-applyAdjustmentMap :: AxisMap -> (AnimAxis, AnimDir) -> (AnimAxis, AnimDir)
-applyAdjustmentMap map (axis, dir)     = (newAxis, if nonInverted then dir else reverseAnimDir dir)
-    where (nonInverted, newAxis) = map axis
+applyAdjustmentMap :: OctGroup -> (AnimAxis, AnimDir) -> (AnimAxis, AnimDir)
+applyAdjustmentMap oct (axis, dir)     = (\(newAxis, newDir) -> if dir == Forwards then (newAxis, newDir) else (newAxis, reverseAnimDir newDir)) $ lookupAxis oct axis
 
-processAnimationChain :: (RotationVec, AxisMap) -> [Maybe (AnimAxis, AnimDir)] -> [AnimData]
+processAnimationChain :: (RotationVec, OctGroup) -> [Maybe (AnimAxis, AnimDir)] -> [AnimData]
 processAnimationChain _ [] = []
 processAnimationChain start (Nothing:as) = ((animationDuration, fst start, fst start): processAnimationChain start as)
-processAnimationChain (oldRot, oldMap) ((Just rot):as) = ((animationDuration, oldRot, end): processAnimationChain (end, newMap) as) 
-    where end = applyAnimationForRotation oldRot $ applyAdjustmentMap oldMap rot 
-          newMap = adjustAxisMap oldMap rot
+processAnimationChain (oldRot, oldOct) ((Just rot):as) = ((animationDuration, oldRot, end): processAnimationChain (end, newOct) as) 
+    where end = applyAnimationForRotation oldRot $ applyAdjustmentMap oldOct rot 
+          newOct = adjustAxisMap oldOct $ applyAdjustmentMap oldOct rot
 
 processRawAnimationCubieMap :: RawAnimationCubieMap a -> AnimationCubieMap a
-processRawAnimationCubieMap = mapOverCubies (processAnimationChain (mempty, (\x -> (True, x)))) 
+processRawAnimationCubieMap = mapOverCubies (processAnimationChain (mempty, mempty)) 
 
 -- Utility function to map over a uniformly-typed 3-tuple
 mapOverUniform3Tuple :: (a -> b) -> (a,a,a) -> (b,b,b)
@@ -154,7 +138,8 @@ animationFromAnimData index (delay, start, end) = attribute (Label . pack $  "an
     (if index > 0 then "startEvents: animation__" ++ show (index -1)  ++ "-complete; " else "") ++
     ("from: " ++ show start ++ "; ") ++
     ("to: " ++ show end ++ "; ") ++
-    ("dur: " ++ show animationDuration ++ ";")
+    ("dur: " ++ show animationDuration ++ "; ") ++
+    ("easing: linear;")
 
 -- To facilitate animation, we will have a "control entity" for each cubie, which extends it out from the origin
 dslControlForCubie :: CubeSize -> (CubieX, CubieY, CubieZ) -> [AnimData] -> CubieStickerFunc Rubiks.Color -> DSL ()
