@@ -12,8 +12,11 @@ import Text.AFrame.WebPage hiding (webPage)
 import Text.AFrame.DSL 
 import Data.Maybe (fromJust, isJust)
 import Data.Group
+import Linear.V3
+import Linear.Quaternion
 
 import System.Environment
+import Debug.Trace
 
 type AnimDelay = Int
 -- A Vector of mod-360 rotation values (currently Ints, could be changed)
@@ -45,13 +48,21 @@ reverseAnimDir :: AnimDir -> AnimDir
 reverseAnimDir Forwards = Backwards
 reverseAnimDir Backwards = Forwards
 
+piOverFour :: Float
+piOverFour = 0.785398163
+
+rotateByAngle :: Quaternion Float -> RotationVec -> RotationVec
+rotateByAngle quat = toRotVec . (rotate quat) . fromRotVec
+    where toRotVec = (\(V3 a b c) -> (RotationVec (floor a, floor b, floor c)))
+          fromRotVec = (\(RotationVec (x,y,z)) -> (V3 (fromIntegral x) (fromIntegral y) (fromIntegral z))) 
+
 applyAnimationForRotation :: RotationVec -> (AnimAxis, AnimDir) -> RotationVec
-applyAnimationForRotation start (AxisX, Forwards)  = start `mappend` (RotationVec ( 90,   0,   0))
-applyAnimationForRotation start (AxisX, Backwards) = start `mappend` (RotationVec (-90,   0,   0))
-applyAnimationForRotation start (AxisY, Forwards)  = start `mappend` (RotationVec (  0,  90,   0))
-applyAnimationForRotation start (AxisY, Backwards) = start `mappend` (RotationVec (  0, -90,   0))
-applyAnimationForRotation start (AxisZ, Forwards)  = start `mappend` (RotationVec (  0,   0,  90))
-applyAnimationForRotation start (AxisZ, Backwards) = start `mappend` (RotationVec (  0,   0, -90))
+applyAnimationForRotation start (AxisX, Forwards)   = rotateByAngle (axisAngle (V3 1    0    0)    piOverFour) start 
+applyAnimationForRotation start (AxisX, Backwards)  = rotateByAngle (axisAngle (V3 (-1) 0    0)    piOverFour) start
+applyAnimationForRotation start (AxisY, Forwards)   = rotateByAngle (axisAngle (V3 0    1    0)    piOverFour) start
+applyAnimationForRotation start (AxisY, Backwards)  = rotateByAngle (axisAngle (V3 0    (-1) 0)    piOverFour) start
+applyAnimationForRotation start (AxisZ, Forwards)   = rotateByAngle (axisAngle (V3 0    0    1)    piOverFour) start
+applyAnimationForRotation start (AxisZ, Backwards)  = rotateByAngle (axisAngle (V3 0    0    (-1)) piOverFour) start
 
 invertFirstBool :: (Bool, a) -> (Bool, a)
 invertFirstBool (True, foo)     = (False, foo)
@@ -67,10 +78,13 @@ applyAdjustmentMap oct (axis, dir)     = (\(newAxis, newDir) -> if dir == Forwar
 
 processAnimationChain :: (RotationVec, OctGroup) -> [Maybe (AnimAxis, AnimDir)] -> [AnimData]
 processAnimationChain _ [] = []
-processAnimationChain start (Nothing:as) = ((animationDuration, fst start, fst start): processAnimationChain start as)
-processAnimationChain (oldRot, oldOct) ((Just rot):as) = ((animationDuration, oldRot, end): processAnimationChain (end, newOct) as) 
-    where end = applyAnimationForRotation oldRot $ applyAdjustmentMap oldOct rot 
-          newOct = adjustAxisMap oldOct $ applyAdjustmentMap oldOct rot
+processAnimationChain (start, oct) (Nothing:as) = ((animationDuration, start, start): processAnimationChain (start, oct) as)
+processAnimationChain (start, oldOct) ((Just rot):as) 
+--    | trace (show "[" ++ show mappedAxis ++ show "]") $ False = undefined
+    | otherwise = ((animationDuration, start, end): processAnimationChain (end, newOct) as) 
+    where end = applyAnimationForRotation start mappedAxis
+          newOct = adjustAxisMap oldOct mappedAxis
+          mappedAxis = applyAdjustmentMap oldOct rot
 
 processRawAnimationCubieMap :: RawAnimationCubieMap a -> AnimationCubieMap a
 processRawAnimationCubieMap = mapOverCubies (processAnimationChain (mempty, mempty)) 
